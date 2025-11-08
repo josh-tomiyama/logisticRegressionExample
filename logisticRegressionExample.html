@@ -1,0 +1,2389 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Josh Tomiyama">
+<meta name="dcterms.date" content="2025-11-07">
+
+<title>Logistic Regression Analysis Example:</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="logisticRegressionExample_files/libs/clipboard/clipboard.min.js"></script>
+<script src="logisticRegressionExample_files/libs/quarto-html/quarto.js"></script>
+<script src="logisticRegressionExample_files/libs/quarto-html/popper.min.js"></script>
+<script src="logisticRegressionExample_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="logisticRegressionExample_files/libs/quarto-html/anchor.min.js"></script>
+<link href="logisticRegressionExample_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="logisticRegressionExample_files/libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="logisticRegressionExample_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="logisticRegressionExample_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="logisticRegressionExample_files/libs/bootstrap/bootstrap-1bc8a17f135ab3d594c857e9f48e611b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="logisticRegressionExample_files/libs/kePrint-0.0.1/kePrint.js"></script>
+
+<link href="logisticRegressionExample_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a>
+  <ul class="collapse">
+  <li><a href="#logistic-regression" id="toc-logistic-regression" class="nav-link" data-scroll-target="#logistic-regression">Logistic Regression</a></li>
+  <li><a href="#why-is-logistic-regression-still-valid-in-the-face-of-new-fancier-models" id="toc-why-is-logistic-regression-still-valid-in-the-face-of-new-fancier-models" class="nav-link" data-scroll-target="#why-is-logistic-regression-still-valid-in-the-face-of-new-fancier-models">Why is Logistic Regression still valid in the face of new fancier models</a></li>
+  </ul></li>
+  <li><a href="#a-novel-application-problem" id="toc-a-novel-application-problem" class="nav-link" data-scroll-target="#a-novel-application-problem">A Novel Application Problem</a>
+  <ul class="collapse">
+  <li><a href="#example-analysis" id="toc-example-analysis" class="nav-link" data-scroll-target="#example-analysis">Example Analysis</a>
+  <ul class="collapse">
+  <li><a href="#simulating-toy-data" id="toc-simulating-toy-data" class="nav-link" data-scroll-target="#simulating-toy-data">Simulating toy data</a></li>
+  <li><a href="#quick-exploratory-analysis-of-the-data-set" id="toc-quick-exploratory-analysis-of-the-data-set" class="nav-link" data-scroll-target="#quick-exploratory-analysis-of-the-data-set">Quick Exploratory analysis of the Data Set</a></li>
+  <li><a href="#fitting-the-logistic-regression-model" id="toc-fitting-the-logistic-regression-model" class="nav-link" data-scroll-target="#fitting-the-logistic-regression-model">Fitting the logistic regression model</a></li>
+  <li><a href="#relationship-between-x_perc_a-and-pi_i" id="toc-relationship-between-x_perc_a-and-pi_i" class="nav-link" data-scroll-target="#relationship-between-x_perc_a-and-pi_i">Relationship between <span class="math inline">\(x_{perc\_a}\)</span> and <span class="math inline">\(\pi_i\)</span></a></li>
+  <li><a href="#calculating-the-optimal-perc_a" id="toc-calculating-the-optimal-perc_a" class="nav-link" data-scroll-target="#calculating-the-optimal-perc_a">Calculating the Optimal perc_a</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">Discussion</a>
+  <ul class="collapse">
+  <li><a href="#model-misspecification" id="toc-model-misspecification" class="nav-link" data-scroll-target="#model-misspecification">Model Misspecification</a></li>
+  <li><a href="#influential-data-points-and-sample-size" id="toc-influential-data-points-and-sample-size" class="nav-link" data-scroll-target="#influential-data-points-and-sample-size">Influential Data Points and Sample Size</a>
+  <ul class="collapse">
+  <li><a href="#what-to-do-about-bias-in-a-data-set" id="toc-what-to-do-about-bias-in-a-data-set" class="nav-link" data-scroll-target="#what-to-do-about-bias-in-a-data-set">What to do about bias in a data set</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Logistic Regression Analysis Example:</h1>
+<p class="subtitle lead">Optimizing Expected Returns</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Josh Tomiyama </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 7, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Last Update: 2025-11-07</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gtsummary)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>This will be the one of the first in a series of example analyses I plan to post online to showcase my statistical technical knowledge as well as document some interesting problems I have come across in my experience. These example analyses are not so much tutorials as they are showcases on how to approach novel problems and apply statistical/machine learning methods and discussion of complications that can arise in analysis. As such, I will assume a some familiarity with the statistical tools and code presented here and generally keep theoretical discussion at a higher level.</p>
+<section id="logistic-regression" class="level2">
+<h2 class="anchored" data-anchor-id="logistic-regression">Logistic Regression</h2>
+<p>Logistic regression is one of the fundamental tools of machine learning and statistics and is actually one of the more powerful tools when one has enough time to go that extra mile and fine tune the model to the data. First I’ll just state the mathematical formula for logistic regression beginning with the data model:</p>
+<p><span class="math inline">\(Y_i|\pi_i \sim Bernoulli(\pi_i)\)</span></p>
+<p>where <span class="math inline">\(i\)</span> refers to the data sample index (think of a row in your data table), <span class="math inline">\(Y_i\)</span> is whether “success” is observed for sample <span class="math inline">\(i\)</span>, and <span class="math inline">\(\pi_i\)</span> is the probability of success for the <span class="math inline">\(i\)</span>-th subject. In typical applications, <span class="math inline">\(Y_i\)</span> is coded such that 0 means “failure” and 1 means “success”. Now we can move on to the regression part of the model between the log-odds and the covariates of interest:</p>
+<p><span class="math inline">\(\log(\frac{\pi_i}{1-\pi_i}) = \pmb x_i \pmb \beta\)</span></p>
+<p>where <span class="math inline">\(\pmb x_i\)</span> is a vector of covariates that you think explain the probability of success and <span class="math inline">\(\pmb \beta\)</span> is the vector of weights that indicate how strongly they contribute to the log-odds of success. When estimating the logistic regression model the <span class="math inline">\(\pmb \beta\)</span> coefficients are the main parameters of interest (as <span class="math inline">\(\pi_i\)</span> is derived from <span class="math inline">\(\pmb \beta\)</span>). The reason we call it “logistic” regression is because <span class="math inline">\(\log(\frac{x_i}{1-x_i})\)</span> is the inverse of the logistic function.</p>
+<p>Overall, the take away is if you are statistically modeling the relationship between binary variable and other data you have collected, then logistic regression is generally a great model to use.</p>
+</section>
+<section id="why-is-logistic-regression-still-valid-in-the-face-of-new-fancier-models" class="level2">
+<h2 class="anchored" data-anchor-id="why-is-logistic-regression-still-valid-in-the-face-of-new-fancier-models">Why is Logistic Regression still valid in the face of new fancier models</h2>
+<p>The important distinction between logistic regression and other machine learning models is that the statistical theory on the model parameters is well understood. For each of the <span class="math inline">\(\beta\)</span> parameters in our model, we know the statistical properties to allow inference through p-values or confidence intervals. Logistic regression is still a tool used today to understand the relationship between a binary outcome and other data collected when statistical evidence is required to validate any findings.</p>
+<p>Although in most real-world scenarios the other machine learning models perform better in terms of predictiveness, logistic regression can sometimes still be a better model in terms of predictiveness. In my experience in classes and work projects, a logistic regression model is actually superior to the more sophisticated machine learning techniques of Gradient Boosted Trees and Random Forests under a few scenarios with respect to the AUC (area under the curve) performance metric.</p>
+<p>The first scenario I’ve come across is when the sample size is relatively small. The machine learning techniques tend to work very well when there is more data to help effectively learn the functional relationship between the data you have and the target outcome. I would say this would be the situation when your sample size is in the magnitude of a few hundreds or less. After that point, other machine learning techniques perform at their expected capacity.</p>
+<p>The second scenario where logistic regression can prove better than tree based methods is if one is willing to both select the covariates that strongly relate to the outcome of interest and also identify how each covariate functionally relates to the outcome. To expand on what I mean by “how each covariate functionally relates to the outcome”, some examples of functional relationships are the usual linear relationship, quadratic relationship, or sinusoidal relationship. In mathematical terms you can propose the following models:</p>
+<p><span class="math inline">\(Linear: \log(\frac{\pi_i}{1 - \pi_i}) = x_i\beta\)</span></p>
+<p><span class="math inline">\(Quadratic: \log(\frac{\pi_i}{1 - \pi_i}) = x_i\beta_1 + x_i^2\beta_2\)</span></p>
+<p><span class="math inline">\(Sinusoidal: \log(\frac{\pi_i}{1 - \pi_i}) = sin(x_i)\beta\)</span></p>
+<p>Choosing a functional relationship alone produces infinite possibilities for one to sort through in addition to just choosing which covariates to include in one’s analysis. The strength of tree based approaches is that they learn these relationships with enough data, but of course the tree won’t be as accurate as if one were to explicitly identify that “true” relationship when training a logistic regression. However, identifying the “true” functional relationship between the outcome and covariates is rather impractical when one has many different covariates to consider at once. So once again, when the data becomes sufficiently large, it is more practical to use a Gradient Boosted Tree model or Random Forest model.</p>
+<p>The advantages and shortfalls of logistic regression compared to other machine learning techniques naturally extend to any generalized linear model such as linear regression. To be clear, I am <strong>NOT</strong> saying that in these scenarios generalized linear models will <strong>ALWAYS</strong> surpass the newer machine learning models and algorithms, but rather that these scenarios <strong>ALLOW</strong> generalized linear models to shine just as well if not better than their other machine learning counterparts in terms of predictiveness.</p>
+</section>
+</section>
+<section id="a-novel-application-problem" class="level1">
+<h1>A Novel Application Problem</h1>
+<p>Suppose that a drug company is developing a new formula for their drug. They are unsure what dosage of Drug A they should use in addition to the dosage of the standard Drug B. The way that the dosage of Drug A is recorded is a percentage relative to drug B (i.e.&nbsp;100% Drug A means that the dosage of A should be equal to Drug B). In testing, different patients required different dosages of Drug B due to their age, weight, and height, and it is plausible that a person’s race (white, black, asian) can also affect their recovery rate from the disease. The goal is to determine what percentage of Drug A that optimally balances the probability of recovering while also administering the highest dosage to the patient as possible. Defining the optimal percentage of Drug A is the novel part of the problem that I want to focus on.</p>
+<p>As a disclaimer: This problem is only for teaching purposes and is not at all indicative on how new drugs are actually developed, and I’ve created this problem to obfuscate the true real world problem for privacy reasons.</p>
+<p>From this set up, we can propose the following logistic regression model:</p>
+<p><span class="math display">\[
+\log(\frac{\pi_i}{1 - \pi_i}) = \beta_0 + x_{perc\_a} * \beta_{perc\_a} +
+x_{dosage_b} * \beta_{dosage_b} + x_{race=black} * \beta_{race=black} + x_{race=asian}*\beta_{race=asian}
+\]</span></p>
+<p>where <span class="math inline">\(x_{perc\_a}\)</span> is a percentage above 0 (above 100 is allowed), <span class="math inline">\(x_{dosage\_b}\)</span> is the dosage of Drug B in milligrams, <span class="math inline">\(x_{race=black}\)</span> is 1 when patient <span class="math inline">\(i\)</span> is black and 0 otherwise, and similarly <span class="math inline">\(x_{race=asian}\)</span> is 1 when patient <span class="math inline">\(i\)</span> is asian and 0 otherwise. When patient <span class="math inline">\(i\)</span> is white then both <span class="math inline">\(x_{race=black}\)</span> and <span class="math inline">\(x_{race=asian}\)</span> are 0. <span class="math inline">\(\pi_i\)</span> is the probability that patient <span class="math inline">\(i\)</span> successfully recovers from the disease. The way that <span class="math inline">\(x_{race}\)</span> is encoded is known as the dummy variable encoding common in statistics (which is different from the one-hot encoding more prevalent in the machine learning field).</p>
+<section id="example-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="example-analysis">Example Analysis</h2>
+<section id="simulating-toy-data" class="level3">
+<h3 class="anchored" data-anchor-id="simulating-toy-data">Simulating toy data</h3>
+<p>First, I will simulate data under the true proposed model. I chose the true parameters that I felt gave a good spread of the true probabilities while also being representative of the expected behavior in the example problem described to me.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="do">## True parameter values</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># set.seed(123123)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>sample_size <span class="ot">&lt;-</span> <span class="dv">3000</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>true_beta <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="co"># intercept</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>               <span class="sc">-</span><span class="fl">0.2</span>, <span class="co"># perc_a</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>               <span class="fl">0.002</span>, <span class="co"># dosage_b</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>               <span class="dv">1</span>, <span class="co"># race=black</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>               <span class="fl">1.5</span> )<span class="co"># race=asian</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="do">### Simulate data</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>race <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"white"</span>, <span class="st">"asian"</span>), </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>               <span class="at">size =</span> sample_size,</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>               <span class="at">replace =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>               <span class="at">prob =</span> <span class="fu">c</span>(<span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.2</span>))</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>dosage <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(sample_size, <span class="at">mean =</span> <span class="dv">2000</span>, <span class="at">sd =</span> <span class="dv">400</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>perc_a <span class="ot">&lt;-</span> <span class="fu">runif</span>(sample_size, <span class="at">min =</span> <span class="dv">20</span>, <span class="at">max =</span> <span class="dv">120</span>)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="do">### make sure none of perc_a are below 0</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>perc_a <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(perc_a <span class="sc">&lt;=</span> <span class="dv">0</span>, <span class="dv">10</span>, perc_a)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co"># convert race into a factor variable to prepare for analysis</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>race <span class="ot">&lt;-</span> <span class="fu">factor</span>(race, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"white"</span>, <span class="st">"black"</span>, <span class="st">"asian"</span>))</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>x_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">perc_a =</span> perc_a, <span class="at">dosage =</span> dosage, <span class="at">race =</span> race)</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co"># get x_matrix</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>x_matrix <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(<span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> perc_a <span class="sc">+</span> dosage <span class="sc">+</span> race, <span class="at">data =</span> x_df)</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">#simulated log-odds per person</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>log_odds <span class="ot">&lt;-</span> x_matrix <span class="sc">%*%</span> true_beta</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co">#convert log_odds to probabilities</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>inverse_logit <span class="ot">&lt;-</span> <span class="cf">function</span>(x){(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>x))<span class="sc">^-</span><span class="dv">1</span>}</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>true_probs <span class="ot">&lt;-</span> <span class="fu">inverse_logit</span>(log_odds)</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="co"># get the outcome</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>recovered <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(sample_size, <span class="dv">1</span>, true_probs)</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>x_df<span class="sc">$</span>recovered <span class="ot">&lt;-</span> recovered</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>x_df<span class="sc">$</span>true_probs <span class="ot">&lt;-</span> <span class="fu">c</span>(true_probs)</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>x_df<span class="sc">$</span>true_log_odds <span class="ot">&lt;-</span> <span class="fu">c</span>(log_odds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="quick-exploratory-analysis-of-the-data-set" class="level3">
+<h3 class="anchored" data-anchor-id="quick-exploratory-analysis-of-the-data-set">Quick Exploratory analysis of the Data Set</h3>
+<p>When starting an analysis, it’s important to first summarize and get a feel of the data. In this case it’s not as informative because the data generating mechanism is known, but we can still go through a brief summary of the data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>x_df <span class="sc">%&gt;%</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(perc_a, dosage, race, recovered) <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tbl_summary</span>(<span class="at">by =</span> <span class="st">"race"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="pkmbrqbjdi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#pkmbrqbjdi table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#pkmbrqbjdi thead, #pkmbrqbjdi tbody, #pkmbrqbjdi tfoot, #pkmbrqbjdi tr, #pkmbrqbjdi td, #pkmbrqbjdi th {
+  border-style: none;
+}
+
+#pkmbrqbjdi p {
+  margin: 0;
+  padding: 0;
+}
+
+#pkmbrqbjdi .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#pkmbrqbjdi .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#pkmbrqbjdi .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#pkmbrqbjdi .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#pkmbrqbjdi .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#pkmbrqbjdi .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#pkmbrqbjdi .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#pkmbrqbjdi .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#pkmbrqbjdi .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#pkmbrqbjdi .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#pkmbrqbjdi .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#pkmbrqbjdi .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#pkmbrqbjdi .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#pkmbrqbjdi .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#pkmbrqbjdi .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#pkmbrqbjdi .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#pkmbrqbjdi .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#pkmbrqbjdi .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#pkmbrqbjdi .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#pkmbrqbjdi .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#pkmbrqbjdi .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#pkmbrqbjdi .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#pkmbrqbjdi .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#pkmbrqbjdi .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#pkmbrqbjdi .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#pkmbrqbjdi .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#pkmbrqbjdi .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#pkmbrqbjdi .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#pkmbrqbjdi .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#pkmbrqbjdi .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#pkmbrqbjdi .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#pkmbrqbjdi .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#pkmbrqbjdi .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#pkmbrqbjdi .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#pkmbrqbjdi .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#pkmbrqbjdi .gt_left {
+  text-align: left;
+}
+
+#pkmbrqbjdi .gt_center {
+  text-align: center;
+}
+
+#pkmbrqbjdi .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#pkmbrqbjdi .gt_font_normal {
+  font-weight: normal;
+}
+
+#pkmbrqbjdi .gt_font_bold {
+  font-weight: bold;
+}
+
+#pkmbrqbjdi .gt_font_italic {
+  font-style: italic;
+}
+
+#pkmbrqbjdi .gt_super {
+  font-size: 65%;
+}
+
+#pkmbrqbjdi .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#pkmbrqbjdi .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#pkmbrqbjdi .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#pkmbrqbjdi .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#pkmbrqbjdi .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#pkmbrqbjdi .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#pkmbrqbjdi .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#pkmbrqbjdi .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#pkmbrqbjdi div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="gt_col_headings header">
+<th id="label" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col"><strong>Characteristic</strong></th>
+<th id="stat_1" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"><strong>white</strong><br>
+N = 1,473<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+<th id="stat_2" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"><strong>black</strong><br>
+N = 919<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+<th id="stat_3" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"><strong>asian</strong><br>
+N = 608<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">perc_a</td>
+<td class="gt_row gt_center" headers="stat_1">69 (45, 95)</td>
+<td class="gt_row gt_center" headers="stat_2">66 (44, 94)</td>
+<td class="gt_row gt_center" headers="stat_3">69 (45, 93)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">dosage</td>
+<td class="gt_row gt_center" headers="stat_1">2,001 (1,718, 2,270)</td>
+<td class="gt_row gt_center" headers="stat_2">2,008 (1,742, 2,264)</td>
+<td class="gt_row gt_center" headers="stat_3">2,000 (1,767, 2,279)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">recovered</td>
+<td class="gt_row gt_center" headers="stat_1">164 (11%)</td>
+<td class="gt_row gt_center" headers="stat_2">147 (16%)</td>
+<td class="gt_row gt_center" headers="stat_3">100 (16%)</td>
+</tr>
+</tbody><tfoot class="gt_footnotes">
+<tr class="odd">
+<td colspan="4" class="gt_footnote"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span> Median (Q1, Q3); n (%)</td>
+</tr>
+</tfoot>
+
+</table>
+
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>x_df <span class="sc">%&gt;%</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(perc_a, dosage, recovered) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tbl_summary</span>(<span class="at">by =</span> recovered)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="wkjczveile" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#wkjczveile table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#wkjczveile thead, #wkjczveile tbody, #wkjczveile tfoot, #wkjczveile tr, #wkjczveile td, #wkjczveile th {
+  border-style: none;
+}
+
+#wkjczveile p {
+  margin: 0;
+  padding: 0;
+}
+
+#wkjczveile .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#wkjczveile .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#wkjczveile .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#wkjczveile .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#wkjczveile .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#wkjczveile .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#wkjczveile .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#wkjczveile .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#wkjczveile .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#wkjczveile .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#wkjczveile .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#wkjczveile .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#wkjczveile .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#wkjczveile .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#wkjczveile .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#wkjczveile .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#wkjczveile .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#wkjczveile .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#wkjczveile .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wkjczveile .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#wkjczveile .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#wkjczveile .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#wkjczveile .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wkjczveile .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#wkjczveile .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#wkjczveile .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#wkjczveile .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wkjczveile .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#wkjczveile .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#wkjczveile .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#wkjczveile .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#wkjczveile .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#wkjczveile .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wkjczveile .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#wkjczveile .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wkjczveile .gt_left {
+  text-align: left;
+}
+
+#wkjczveile .gt_center {
+  text-align: center;
+}
+
+#wkjczveile .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#wkjczveile .gt_font_normal {
+  font-weight: normal;
+}
+
+#wkjczveile .gt_font_bold {
+  font-weight: bold;
+}
+
+#wkjczveile .gt_font_italic {
+  font-style: italic;
+}
+
+#wkjczveile .gt_super {
+  font-size: 65%;
+}
+
+#wkjczveile .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#wkjczveile .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#wkjczveile .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#wkjczveile .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#wkjczveile .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#wkjczveile .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#wkjczveile .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#wkjczveile .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#wkjczveile div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="gt_col_headings header">
+<th id="label" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col"><strong>Characteristic</strong></th>
+<th id="stat_1" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"><strong>0</strong><br>
+N = 2,589<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+<th id="stat_2" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"><strong>1</strong><br>
+N = 411<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">perc_a</td>
+<td class="gt_row gt_center" headers="stat_1">76 (54, 97)</td>
+<td class="gt_row gt_center" headers="stat_2">28 (24, 34)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">dosage</td>
+<td class="gt_row gt_center" headers="stat_1">1,984 (1,715, 2,259)</td>
+<td class="gt_row gt_center" headers="stat_2">2,105 (1,853, 2,382)</td>
+</tr>
+</tbody><tfoot class="gt_footnotes">
+<tr class="odd">
+<td colspan="3" class="gt_footnote"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span> Median (Q1, Q3)</td>
+</tr>
+</tfoot>
+
+</table>
+
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(perc_a, dosage, </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Dosage vs perc_a"</span>, </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">"Dosage (mg)"</span>, </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Percentage Drug A (%)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logisticRegressionExample_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The first table summarizes the different covariates and outcomes by race. Inspecting the average and quartiles of perc_a and dosage between the different races we don’t notice any difference in the distributions. This implies that race is associated with neither the dosage nor perc_a, which is a best case scenario for a logistic regression analysis. The percentage of people who recovered from the disease is fairly different between each of the races with the black and asian groups recovering at a higher rate than the white group. This implies that there may be an association between race and recovery from the disease. Clearly there is an imbalance in the distribution of race in the data set, but we have enough cases of each race such including race in the logistic regression model shouldn’t be a problem.</p>
+<p>The second table summarizes perc_a and the dosage variables by whether the patient recovered (the 1 group) or not (the 0 group). Comparing these two groups, we can clearly see that perc_a is lower in the groups that recovered indicating a negative association between recovery and perc_a. The distribution of dosage shift about 100mg higher in the group that recovered and thus suggests a positive association between dosage and recovery.</p>
+<p>Finally, in the scatter plot comparing dosage and perc_a, we observe random spread of the points. There is no indication of a linear or other functional relationship between perc_a and dosage, which is an ideal scenario for logistic regression.</p>
+</section>
+<section id="fitting-the-logistic-regression-model" class="level3">
+<h3 class="anchored" data-anchor-id="fitting-the-logistic-regression-model">Fitting the logistic regression model</h3>
+<p>Fitting a logistic regression model in R is a simple one line of code. Since we know what the true generating parameters are above, let’s double check our work by comparing the fitted values to the true parameters.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(recovered <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> perc_a <span class="sc">+</span> dosage <span class="sc">+</span> race, </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">data =</span> x_df,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> binomial)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>ci <span class="ot">&lt;-</span> <span class="fu">confint</span>(fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Waiting for profiling to be done...</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">truth =</span> true_beta, </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">est =</span> <span class="fu">coef</span>(fit),</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">ci_lwr =</span> ci[,<span class="dv">1</span>],</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">ci_upr =</span> ci[,<span class="dv">2</span>])</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(result, <span class="at">digits =</span> <span class="dv">4</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table caption-top table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">truth</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">est</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ci_lwr</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ci_upr</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">2.000</td>
+<td style="text-align: right;">2.6783</td>
+<td style="text-align: right;">1.6904</td>
+<td style="text-align: right;">3.6870</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">perc_a</td>
+<td style="text-align: right;">-0.200</td>
+<td style="text-align: right;">-0.2270</td>
+<td style="text-align: right;">-0.2531</td>
+<td style="text-align: right;">-0.2031</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">dosage</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.0022</td>
+<td style="text-align: right;">0.0017</td>
+<td style="text-align: right;">0.0026</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">raceblack</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.9103</td>
+<td style="text-align: right;">0.5132</td>
+<td style="text-align: right;">1.3148</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">raceasian</td>
+<td style="text-align: right;">1.500</td>
+<td style="text-align: right;">1.3735</td>
+<td style="text-align: right;">0.9052</td>
+<td style="text-align: right;">1.8524</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+<p>As expected with this rather large sample size, the estimates are fairly close to the true values and are well within the 95% confidence intervals.</p>
+<p>When building a logistic regression model, one usually has to consider a few different models to find the best fit to the data. Let’s consider two other logistic regression models. One without race in the model but all other variables in the model:</p>
+<p><span class="math display">\[
+\log(\frac{\pi_i}{1 - \pi_i}) = \beta_0 + x_{perc\_a} * \beta_{perc\_a} +
+x_{dosage_b} * \beta_{dosage_b}
+\]</span></p>
+<p>and another with a quadratic term for perc_a and including all the other variables:</p>
+<p><span class="math display">\[
+\log(\frac{\pi_i}{1 - \pi_i}) = \beta_0 + x_{perc\_a} * \beta_{perc\_a} + x_{perc\_a}^2 * \beta_{perc\_a^2} +
+x_{dosage_b} * \beta_{dosage_b} + x_{race=black} * \beta_{race=black} + x_{race=asian}*\beta_{race=asian}
+\]</span></p>
+<p>There are many model selection criteria to choose from and which one to use depends on the goal of the analysis. In this application, the goal is estimation and inference, so I would personally advocate for the Bayesian Information Criterion (BIC). The BIC is a quantity that expresses how well the proposed model fits the data while also balancing how many parameters are in a model. More parameters in a model results in a better fit to the data but too many parameters results in overfitting. Overfitting is bad due to lack of generalizability of the model to new data. Hence, the need for BIC to take into account the number of parameters in the model.</p>
+<p>Lower values of BIC indicate a better model for the data. A difference of at least 2 is generally the threshold to consider one model better than the other. Generally speaking, BIC favors having less parameters a model as compared to it’s counterpart the Akaike Information Criterion (AIC). Therefore, the BIC is sometimes the preferred model selection criterion when the goal is to identify what covariates to go into a model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">glm</span>(recovered <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> perc_a <span class="sc">+</span> dosage, </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">data =</span> x_df,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> binomial)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">glm</span>(recovered <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> perc_a <span class="sc">+</span> <span class="fu">I</span>(perc_a<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> dosage <span class="sc">+</span> race, </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">data =</span> x_df,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> binomial)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>df_model_selection <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">model =</span> <span class="fu">c</span>(<span class="st">"True_model"</span>, <span class="st">"no_race"</span>, <span class="st">"quadratic_perc_a"</span>), </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">bic =</span> <span class="fu">c</span>(<span class="fu">BIC</span>(fit), <span class="fu">BIC</span>(fit1), <span class="fu">BIC</span>(fit2))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>                                 ) </span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>df_model_selection <span class="sc">%&gt;%</span>    </span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">"Smaller BIC indicates better model"</span>) <span class="sc">%&gt;%</span>  </span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table caption-top table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Smaller BIC indicates better model</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">model</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">bic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">True_model</td>
+<td style="text-align: right;">869.660</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">no_race</td>
+<td style="text-align: right;">894.403</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">quadratic_perc_a</td>
+<td style="text-align: right;">877.634</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+<p>Here we observe a few things when fitting the models. Clearly excluding race results in a worse model than the true model as the difference is around 50. Second, it is actually plausible that the quadratic perc_a term is equivalent to the true model as the difference in BIC is within 2. However, fitting the quadratic perc_a model resulted in some numerical instability so that is already one reason not to fully trues the quadratic model. Secondly, I usually advocate for the model with less parameters when two models are similar in terms of BIC. So of these three models in consideration, the true model is best as we expect.</p>
+</section>
+<section id="relationship-between-x_perc_a-and-pi_i" class="level3">
+<h3 class="anchored" data-anchor-id="relationship-between-x_perc_a-and-pi_i">Relationship between <span class="math inline">\(x_{perc\_a}\)</span> and <span class="math inline">\(\pi_i\)</span></h3>
+<p>Now that we have decided on a logistic regression model, let’s explore the relationship between perc_a and the probability of recovering. The relationship between perc_a and the log-odds might be linear, but when we invert the problem to get the relationship between perc_a and the probability it is certainly non-linear. To produce this non-linear relationship, we can invert the log-odds back to the probability scale through the following formula:</p>
+<p><span class="math display">\[
+\pi_i = (1 + \exp[-(\beta_0 + x_{perc\_a} * \beta_{perc\_a} +
+x_{dosage} * \beta_{dosage} + x_{race=black} * \beta_{race=black} + x_{race=asian}*\beta_{race=asian})])^{-1}
+\]</span></p>
+<p>We are specifically interested in how perc_a relates to the probability of success, but we have the other data variables in the formula. Before exploring how the probability of success changes over a range of values for perc_a, it is pertinent to choose some representative values for dosage and race. To start with, let’s set the dosage level to be the observed average dosage level and let race be the most common race in the data set to provide a curve.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="do">## there isn't a mode function in base R</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>getMode <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  lx <span class="ot">&lt;-</span> <span class="fu">levels</span>(x)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  ux <span class="ot">&lt;-</span> <span class="fu">unique</span>(lx)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">factor</span>(ux[<span class="fu">which.max</span>(<span class="fu">tabulate</span>(<span class="fu">match</span>(lx, ux)))], <span class="at">levels =</span> lx)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>range_perc_a <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">75</span>, <span class="at">by =</span> <span class="dv">1</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>mode_race <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">getMode</span>(x_df<span class="sc">$</span>race), <span class="fu">length</span>(range_perc_a))</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>mean_dosage <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">mean</span>(x_df<span class="sc">$</span>dosage), <span class="fu">length</span>(range_perc_a))</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>new_x_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">"perc_a"</span> <span class="ot">=</span> range_perc_a,</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>                       <span class="st">"dosage"</span> <span class="ot">=</span> mean_dosage,</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>                       <span class="st">"race"</span> <span class="ot">=</span> mode_race)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit, <span class="at">newdata =</span> new_x_df, <span class="at">se.fit =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>preds_ci_upr <span class="ot">&lt;-</span> preds<span class="sc">$</span>fit <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>)<span class="sc">*</span>preds<span class="sc">$</span>se.fit</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>preds_ci_lwr <span class="ot">&lt;-</span> preds<span class="sc">$</span>fit <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>)<span class="sc">*</span>preds<span class="sc">$</span>se.fit</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>probs_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">pred_prob =</span> <span class="fu">inverse_logit</span>(preds<span class="sc">$</span>fit),</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>                       <span class="at">pred_prob_lwr =</span> <span class="fu">inverse_logit</span>(preds_ci_lwr),</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>                       <span class="at">pred_prob_upr =</span> <span class="fu">inverse_logit</span>(preds_ci_upr),</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>                       <span class="at">perc_a =</span> range_perc_a)</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>true_probs <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(<span class="sc">~</span> perc_a <span class="sc">+</span> dosage <span class="sc">+</span> race, <span class="at">data =</span> new_x_df) <span class="sc">%*%</span> true_beta</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>probs_df<span class="sc">$</span>true_probs <span class="ot">&lt;-</span> <span class="fu">inverse_logit</span>(true_probs)</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(probs_df) <span class="sc">+</span> </span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>  <span class="do">## probability curve predicted from logistic regression in black</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x =</span> perc_a, <span class="at">y =</span> pred_prob)) <span class="sc">+</span> </span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>  <span class="do">## 95% wald CI in red</span></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x =</span> perc_a, <span class="at">y =</span> pred_prob_upr), <span class="at">col =</span> <span class="st">"red"</span>) <span class="sc">+</span> </span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x =</span> perc_a, <span class="at">y =</span> pred_prob_lwr), <span class="at">col =</span> <span class="st">"red"</span>) <span class="sc">+</span> </span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>  <span class="do">## probability curve using true values will be in blue</span></span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x =</span> perc_a, <span class="at">y =</span> true_probs), <span class="at">col =</span> <span class="st">"blue"</span>) <span class="sc">+</span> </span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="fu">paste0</span>(<span class="st">"Probablity of recovering from disease vs perc_a"</span>),</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>          <span class="at">subtitle =</span> <span class="fu">paste0</span>(<span class="st">"Race = "</span>, mode_race[<span class="dv">1</span>], </span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>                            <span class="st">"  dosage = "</span>, </span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>                            <span class="fu">round</span>(mean_dosage[<span class="dv">1</span>], <span class="at">digits =</span> <span class="dv">2</span>)</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>                            )</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logisticRegressionExample_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>As expected, due to how well our estimates of the parameters are, the estimated probability curve in black is mostly overlapped by expected probabilities calculated from the true parameters in blue. As we can see from the graph above, the probability of recovery decreases as perc_a increases. This isn’t surprising given that the true parameter for perc_a is -0.02. In the context of the given problem this would indicate evidence that administrating Drug A is actually harmful and ill-advised, but humor me as we try to find an optimal amount of perc_a.</p>
+<p>Let’s plot the differences between the true and predicted probabilities to really show how small the difference in magnitude is. We can see that the probabilities only differ at most by 0.004. Depending on the application context this can be a meaningful distance or not, but for my general rule of thumb this is not a meaningful difference.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="at">x =</span> probs_df<span class="sc">$</span>perc_a, </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">y =</span> probs_df<span class="sc">$</span>true_probs <span class="sc">-</span> probs_df<span class="sc">$</span>pred_prob, </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">type =</span> <span class="st">'h'</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">"True Prob - Pred Prob"</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"perc_a"</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Difference between True and Predicted Probabilities"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logisticRegressionExample_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="calculating-the-optimal-perc_a" class="level3">
+<h3 class="anchored" data-anchor-id="calculating-the-optimal-perc_a">Calculating the Optimal perc_a</h3>
+<p>We can propose the following function to express a balance between optimizing dosage administration while increasing the probability of successfully recovering the disease:<br>
+</p>
+<p><span class="math inline">\(f(x_{perc\_a}) = (1 + \frac{x_{perc\_a}}{100})*x_{dosage} \pi_i\)</span></p>
+<p>This function is derived from the idea of the expected total dosage consumed by a new patient. The new patients total dosage is expressed as <span class="math inline">\((1 + \frac{x_{perc\_a}}{100})*x_{dosage}\)</span> and the expected value of a new observation <span class="math inline">\(Y_i\)</span> is <span class="math inline">\(\pi_i\)</span> because <span class="math inline">\(Y_i\)</span> is a Bernoulli random variable. Thus, the expected total dosage that is administered to recovering patients is the multiplication of these two quantities.</p>
+<p>The calculation of <span class="math inline">\(\pi_i\)</span> depends on <span class="math inline">\(x_{perc\_a}\)</span> <em>and</em> <span class="math inline">\(x_{dosage}\)</span>. This can be a typical calculus optimization problem to solve in this context, but instead we’ll use numerical optimization to maximize this function to keep things code heavy rather than math heavy.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>expected_return <span class="ot">&lt;-</span> <span class="cf">function</span>(perc_a, dosage, race, fit, <span class="at">log =</span> <span class="cn">TRUE</span>){</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  new_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">perc_a =</span> perc_a,</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>                         <span class="at">dosage =</span> dosage,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                         <span class="at">race =</span> race)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(log){</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>   <span class="do">### doing optimization on the log scale is more stable</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> perc_a<span class="sc">/</span><span class="dv">100</span>) <span class="sc">+</span> <span class="fu">log</span>(dosage) <span class="sc">+</span> </span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">log</span>(<span class="fu">inverse_logit</span>(<span class="fu">predict</span>(fit, <span class="at">newdata =</span> new_data, <span class="at">type =</span> <span class="st">"link"</span>)))</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  }<span class="cf">else</span>{</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>   (<span class="dv">1</span> <span class="sc">+</span> perc_a<span class="sc">/</span><span class="dv">100</span>)<span class="sc">*</span>dosage <span class="sc">*</span> <span class="co">#total dosage administered</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inverse_logit</span>(<span class="fu">predict</span>(fit, <span class="at">newdata =</span> new_data, <span class="at">type =</span> <span class="st">"link"</span>)) <span class="co">#prob success </span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>optimal_vals <span class="ot">&lt;-</span> <span class="fu">optim</span>(<span class="at">par =</span> <span class="dv">50</span>, </span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">fn =</span> expected_return, </span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">method =</span> <span class="st">"BFGS"</span>,</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">control =</span> <span class="fu">list</span>(<span class="at">fnscale =</span> <span class="sc">-</span><span class="dv">1</span>), <span class="co"># do maximization not minimization</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>      <span class="co"># These params don't change</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>      <span class="at">dosage =</span> mean_dosage[<span class="dv">1</span>], <span class="at">race =</span> mode_race[<span class="dv">1</span>], <span class="at">fit =</span> fit </span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>      )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in log(1 + perc_a/100): NaNs produced</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(optimal_vals<span class="sc">$</span>convergence <span class="sc">!=</span> <span class="dv">0</span>){</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"The numerical optimization did not converge"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>}<span class="cf">else</span>{</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  new_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">perc_a =</span> optimal_vals<span class="sc">$</span>par,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                         <span class="at">dosage =</span> mean_dosage[<span class="dv">1</span>],</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                         <span class="at">race =</span> mode_race[<span class="dv">1</span>])</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  optimal_prob_success <span class="ot">&lt;-</span> <span class="fu">inverse_logit</span>(<span class="fu">predict</span>(fit, new_data))</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  optimal_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">optimal_perc_a =</span> optimal_vals<span class="sc">$</span>par,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>                           <span class="at">expected_total_dosage =</span> <span class="fu">exp</span>(optimal_vals<span class="sc">$</span>value),</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>                           <span class="at">race =</span> mode_race[<span class="dv">1</span>],</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>                           <span class="at">dosage =</span> mean_dosage[<span class="dv">1</span>],</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>                           <span class="at">prob_success =</span> optimal_prob_success)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(optimal_df, <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">align =</span> <span class="st">'c'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">kable_styling</span>()</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table caption-top table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: center;" data-quarto-table-cell-role="th">optimal_perc_a</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">expected_total_dosage</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">race</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">dosage</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">prob_success</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">16.551</td>
+<td style="text-align: center;">2244.853</td>
+<td style="text-align: center;">white</td>
+<td style="text-align: center;">2001.75</td>
+<td style="text-align: center;">0.962</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+<p>From this analysis, we find that for a white person who takes a dosage of 1992 mg of Drug B, the optimal dosage of Drug A is about 14.5 percent of the dosage of Drug B. This results in a total dosage of about 2173 mg of drugs.</p>
+<p>Although our formula calculates an optimal dosage of 14.5 percent of Drug A, we need to keep in mind that the range of perc_a in the data set are values between 20 and 120 percent. Thus, a dosage of 14.5 percent is outside the region of the data or that we are extrapolating outside the range of our observed data. I would suggest collecting more data in this range before widely adopting this decision rule.</p>
+<p>In this section we only looked at one specific combination of covariates. Of course, we may want to consider cases with different races and different dosage levels of Drug B. To explore these different scenarios more easily, I’ve created a Rshiny dashboard linked below (if it’s done).</p>
+</section>
+</section>
+</section>
+<section id="discussion" class="level1">
+<h1>Discussion</h1>
+<section id="model-misspecification" class="level2">
+<h2 class="anchored" data-anchor-id="model-misspecification">Model Misspecification</h2>
+<p>One may be tempted to fit a simpler logistic regression model that just includes perc_a and an intercept term because perc_a is the only relationship we are interested in exploring. If we choose to ignore the “true” relationship between the data variables and the outcome then we introduce significant bias in our estimates and predictions. Using the same data from earlier, let’s inspect the relationship of the estimated probability of recovery and perc_a under this simpler model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>fit_reduced <span class="ot">&lt;-</span> <span class="fu">glm</span>(recovered <span class="sc">~</span> perc_a, <span class="at">data =</span> x_df, <span class="at">family =</span> <span class="fu">binomial</span>()) </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(fit_reduced)  </span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>new_x_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="st">"perc_a"</span> <span class="ot">=</span> range_perc_a,                        </span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>                       <span class="st">"dosage"</span> <span class="ot">=</span> mean_dosage,                        </span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>                       <span class="st">"race"</span> <span class="ot">=</span> mode_race)  </span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_reduced, <span class="at">newdata =</span> new_x_df, <span class="at">se.fit =</span> <span class="cn">TRUE</span>) </span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>preds_ci_upr <span class="ot">&lt;-</span> preds<span class="sc">$</span>fit <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>)<span class="sc">*</span>preds<span class="sc">$</span>se.fit </span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>preds_ci_lwr <span class="ot">&lt;-</span> preds<span class="sc">$</span>fit <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>)<span class="sc">*</span>preds<span class="sc">$</span>se.fit </span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>probs_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">pred_prob =</span> <span class="fu">inverse_logit</span>(preds<span class="sc">$</span>fit), </span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>                       <span class="at">pred_prob_lwr =</span> <span class="fu">inverse_logit</span>(preds_ci_lwr), </span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>                       <span class="at">pred_prob_upr =</span> <span class="fu">inverse_logit</span>(preds_ci_upr),  </span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>                       <span class="at">perc_a =</span> range_perc_a)  </span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>true_probs <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(<span class="sc">~</span> perc_a <span class="sc">+</span> dosage <span class="sc">+</span> race, <span class="at">data =</span> new_x_df) <span class="sc">%*%</span> true_beta </span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>probs_df<span class="sc">$</span>true_probs <span class="ot">&lt;-</span> <span class="fu">inverse_logit</span>(true_probs)  </span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co"># mean(probs_df$pred_prob - probs_df$true_probs)   </span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(probs_df) <span class="sc">+</span>    </span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x =</span> perc_a, <span class="at">y =</span> pred_prob)) <span class="sc">+</span>    </span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x =</span> perc_a, <span class="at">y =</span> pred_prob_upr), <span class="at">col =</span> <span class="st">"red"</span>) <span class="sc">+</span>    </span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x =</span> perc_a, <span class="at">y =</span> pred_prob_lwr), <span class="at">col =</span> <span class="st">"red"</span>) <span class="sc">+</span>    </span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x =</span> perc_a, <span class="at">y =</span> true_probs), <span class="at">col =</span> <span class="st">"blue"</span>) <span class="sc">+</span>    </span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="fu">paste0</span>(<span class="st">"Probablity of recovering from disease vs perc_a"</span>),</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>          <span class="at">subtitle =</span> <span class="fu">paste0</span>(<span class="st">"Race = "</span>, mode_race[<span class="dv">1</span>],  </span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>                            <span class="st">"  dosage = "</span>, </span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>                            <span class="fu">round</span>(mean_dosage[<span class="dv">1</span>], <span class="at">digits =</span> <span class="dv">2</span>)   </span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>                            )   </span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>          )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logisticRegressionExample_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Very clearly, the true probability curve in blue is outside of the 95% confidence intervals for most of values of perc_a. The bias is mild at first but quickly diverges after around perc_a = 20. In this example curve, the estimated probability is higher than the true probability so any decisions made off the estimated probability will be over optimistic and thus lead to waste of perc_a doses.</p>
+<p>The inadequacy of the simple model is very apparent when we compare the BIC values of each model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>df_model_selection <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">model =</span> <span class="fu">c</span>(<span class="st">"True_model"</span>, <span class="st">"Simple_model"</span>), </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">bic =</span> <span class="fu">c</span>(<span class="fu">BIC</span>(fit), <span class="fu">BIC</span>(fit_reduced))</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                                 ) </span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>df_model_selection <span class="sc">%&gt;%</span>    </span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">"Smaller BIC indicates better model"</span>) <span class="sc">%&gt;%</span>  </span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table caption-top table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Smaller BIC indicates better model</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">model</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">bic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">True_model</td>
+<td style="text-align: right;">869.660</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Simple_model</td>
+<td style="text-align: right;">978.393</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+<p>From our data, we observe the true model having a BIC of about 941 and the simple model having a BIC of about 1057. That is way more than the nominal threshold of 2. In fact, differences of 10 or more in the BIC indicate practically no evidence to favor the higher BIC model. So this section highlights the importance of considering different logistic regression models and comparing them using some model selection criterion.</p>
+</section>
+<section id="influential-data-points-and-sample-size" class="level2">
+<h2 class="anchored" data-anchor-id="influential-data-points-and-sample-size">Influential Data Points and Sample Size</h2>
+<p>This question has come to me multiple times where sometimes the data is biased in some way where some subgroup of the data is underrepresented. Generally speaking, this will bias your estimates and thus statistical inference assumptions are violated (i.e.&nbsp;no independent, random sampling). But is it necessarily a problem? Well the answer is it <em>can</em> be, but it <em>depends</em> on the truth.</p>
+<p>To simulate this scenario, we will bias the data set from earlier in two (rather extreme) ways:</p>
+<ol type="1">
+<li>People with a dosage in the range of 2000-2100mg chose not to participate in the study.</li>
+<li>People with perc_a in the range of 70-80% chose not to participate in the study</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>x_df_bias <span class="ot">&lt;-</span> <span class="fu">filter</span>(x_df, dosage <span class="sc">&lt;</span> <span class="dv">2000</span> <span class="sc">|</span> dosage <span class="sc">&gt;</span> <span class="dv">2100</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>fit_bias <span class="ot">&lt;-</span> <span class="fu">glm</span>(recovered <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> perc_a <span class="sc">+</span> dosage <span class="sc">+</span> race, </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> x_df_bias,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">family =</span> binomial)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>ci_bias <span class="ot">&lt;-</span> <span class="fu">confint</span>(fit_bias)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Waiting for profiling to be done...</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">truth =</span> true_beta, </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">full_est =</span> <span class="fu">coef</span>(fit),</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">bias_est =</span> <span class="fu">coef</span>(fit_bias),</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">bias_ci_lwr =</span> ci_bias[,<span class="dv">1</span>],</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">bias_ci_upr =</span> ci_bias[,<span class="dv">2</span>])</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(result, <span class="at">digits =</span> <span class="dv">4</span>, <span class="at">caption =</span> <span class="st">"Estimates when dosage is biased"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table caption-top table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Estimates when dosage is biased</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">truth</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">full_est</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">bias_est</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">bias_ci_lwr</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">bias_ci_upr</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">2.000</td>
+<td style="text-align: right;">2.6783</td>
+<td style="text-align: right;">2.7210</td>
+<td style="text-align: right;">1.7060</td>
+<td style="text-align: right;">3.7613</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">perc_a</td>
+<td style="text-align: right;">-0.200</td>
+<td style="text-align: right;">-0.2270</td>
+<td style="text-align: right;">-0.2335</td>
+<td style="text-align: right;">-0.2621</td>
+<td style="text-align: right;">-0.2075</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">dosage</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.0022</td>
+<td style="text-align: right;">0.0022</td>
+<td style="text-align: right;">0.0017</td>
+<td style="text-align: right;">0.0027</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">raceblack</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.9103</td>
+<td style="text-align: right;">0.9776</td>
+<td style="text-align: right;">0.5541</td>
+<td style="text-align: right;">1.4104</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">raceasian</td>
+<td style="text-align: right;">1.500</td>
+<td style="text-align: right;">1.3735</td>
+<td style="text-align: right;">1.3584</td>
+<td style="text-align: right;">0.8562</td>
+<td style="text-align: right;">1.8721</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>x_df_bias2 <span class="ot">&lt;-</span> <span class="fu">filter</span>(x_df, perc_a <span class="sc">&lt;</span> <span class="dv">70</span> <span class="sc">|</span> perc_a <span class="sc">&gt;</span> <span class="dv">80</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>fit_bias2 <span class="ot">&lt;-</span> <span class="fu">glm</span>(recovered <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> perc_a <span class="sc">+</span> dosage <span class="sc">+</span> race, </span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> x_df_bias2,</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">family =</span> binomial)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>ci_bias <span class="ot">&lt;-</span> <span class="fu">confint</span>(fit_bias2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Waiting for profiling to be done...</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">truth =</span> true_beta,</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">full_est =</span> <span class="fu">coef</span>(fit),</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">bias_est =</span> <span class="fu">coef</span>(fit_bias2),</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">bias_ci_lwr =</span> ci_bias[,<span class="dv">1</span>],</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">bias_ci_upr =</span> ci_bias[,<span class="dv">2</span>])</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(result, <span class="at">digits =</span> <span class="dv">4</span>, <span class="at">caption =</span> <span class="st">"Estimates when perc_a is biased"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table caption-top table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Estimates when perc_a is biased</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">truth</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">full_est</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">bias_est</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">bias_ci_lwr</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">bias_ci_upr</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">2.000</td>
+<td style="text-align: right;">2.6783</td>
+<td style="text-align: right;">2.6729</td>
+<td style="text-align: right;">1.6842</td>
+<td style="text-align: right;">3.6824</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">perc_a</td>
+<td style="text-align: right;">-0.200</td>
+<td style="text-align: right;">-0.2270</td>
+<td style="text-align: right;">-0.2267</td>
+<td style="text-align: right;">-0.2529</td>
+<td style="text-align: right;">-0.2028</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">dosage</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.0022</td>
+<td style="text-align: right;">0.0022</td>
+<td style="text-align: right;">0.0017</td>
+<td style="text-align: right;">0.0026</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">raceblack</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.9103</td>
+<td style="text-align: right;">0.9095</td>
+<td style="text-align: right;">0.5126</td>
+<td style="text-align: right;">1.3140</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">raceasian</td>
+<td style="text-align: right;">1.500</td>
+<td style="text-align: right;">1.3735</td>
+<td style="text-align: right;">1.3729</td>
+<td style="text-align: right;">0.9047</td>
+<td style="text-align: right;">1.8517</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+<p>Notice how in each case, even though we excluded a specific portion of our target population the estimates shifted, but not by a lot. In fact, the inference is still rather okay under these conditions despite the bias. This is actually not completely unexpected and relates to the concept of influential data points when conducting a data analysis. There are multiple ways to measure influence in data with respect to a generalized linear model, the one most pertinent to this analysis is DFBETA(S).</p>
+<p>DFBETA(S) measures the change in a parameter estimate when a single data point is deleted from the model. The formula to calculate this measurement is expressed as:</p>
+<p><span class="math display">\[DFBETAS_j = \frac{\hat \beta_j - \hat \beta_{(i)j}}{SE(\hat \beta_j)}\]</span></p>
+<p>Where <span class="math inline">\(j\)</span> is the index for each beta parameter in the regression model, <span class="math inline">\(\hat \beta_{(i)j}\)</span> is the estimated beta parameter when the <span class="math inline">\(i\)</span>th data point is deleted, and <span class="math inline">\(SE(\hat \beta_j)\)</span> is the standard error for the <span class="math inline">\(\beta_j\)</span> parameter.</p>
+<p>We can calculate this for each of the data points in our sample and a rule of thumb is that points with a DFBETA(S) greater than <span class="math inline">\(\pm \frac{2}{\sqrt n}\)</span> are highly influential where <span class="math inline">\(n\)</span> is the sample size of the data. The S in DFBETA(S) stands for standardized and is why the denominator is the standard error of <span class="math inline">\(\hat \beta_j\)</span>. The parentheses in the name are just to emphasize the standardization part, I’ll drop them from here on out.</p>
+<p>Let’s inspect the DFBETAS for the full model to get an idea of how influential our data is.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>dfbetas_vals <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">dfbetas</span>(fit)) </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(dfbetas_vals)[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="st">"intercept"</span> </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="dv">4</span><span class="sc">/</span>sample_size) </span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">ncol</span>(dfbetas_vals)){ </span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  y <span class="ot">&lt;-</span> dfbetas_vals[,i] </span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(y, </span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">type =</span> <span class="st">'h'</span>, </span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> <span class="fu">paste0</span>(<span class="st">"DFBETAS plot for "</span>, <span class="fu">colnames</span>(dfbetas_vals)[i]),</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylim =</span> <span class="fu">c</span>(<span class="fu">min</span>(<span class="fu">c</span>(y, <span class="sc">-</span><span class="dv">1</span><span class="sc">*</span>threshold)), <span class="fu">max</span>(<span class="fu">c</span>(y, threshold)))</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>       ) </span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">h =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="sc">*</span>threshold, <span class="at">col =</span> <span class="st">'red'</span>) </span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">text</span>(<span class="at">x =</span> <span class="dv">0</span>, </span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>       <span class="fu">max</span>(y), </span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">adj =</span> <span class="dv">0</span>, </span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>       <span class="fu">paste0</span>(<span class="st">"Proportion of highly influential points = "</span>, </span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>              <span class="fu">mean</span>(<span class="fu">abs</span>(y) <span class="sc">&gt;</span> threshold)) </span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>       ) </span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logisticRegressionExample_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logisticRegressionExample_files/figure-html/unnamed-chunk-12-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logisticRegressionExample_files/figure-html/unnamed-chunk-12-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logisticRegressionExample_files/figure-html/unnamed-chunk-12-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logisticRegressionExample_files/figure-html/unnamed-chunk-12-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># idx &lt;- abs(dfbetas_vals$perc_a) &gt; threshold</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(x_df[idx,])</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(x_df)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here we can see somewhere around 10% of the points are influential relative to the <span class="math inline">\(\pm \frac{2}{\sqrt n}\)</span> cut off for each of the beta parameters in the logistic regression. In a real world analysis we would inspect these points to determine if there is a pattern emerging from these influential points and appropriately exclude or try to adjust for any implied bias.</p>
+<p>Although not immediately obvious from the formula for DFBETAS, the sample size impacts how influential a single data point is on the estimation. Generally speaking, the larger the sample size the lower magnitude of the influence of a single data point on estimating parameters. Thus, for a large sample size like the one in this simulated data set, the influence is small and is the reason why deleting a small portion of the data set had minimal effect on the parameter estimates.</p>
+<p>The lesson here is that, for any biased data set, the influence may or may not strongly impact the parameters estimates depending on whether the biased data excluded any of these highly influential data points. Because we are in the context of a simulation problem, it’s obvious to us how big this influence is because we know the truth. In real applications, we never know how big the influence is; all we know is that a bias in estimates will exist. For instance, if the data was biased in a way that a subset of the target population is excluded, then we will never know how those unobserved data points would impact the parameter estimates. This is where statistical analysis becomes a bit more of an art than a science.</p>
+<section id="what-to-do-about-bias-in-a-data-set" class="level3">
+<h3 class="anchored" data-anchor-id="what-to-do-about-bias-in-a-data-set">What to do about bias in a data set</h3>
+<p>For each of the bias scenarios, I would first investigate why did the sampling bias occur. Perhaps it was an expected phenomena such as the drugs are simply not created with those dosage levels. In this case, we simply redefine the target population of inference to exclude that unobserved sub–population.</p>
+<p>If the sampling bias was not expected in the data and it isn’t feasible to collect data from missing sub-population, then what to do next really depends. First I would assess how well the model fits the data and the quality of the data. The data in this example is simulated, so the data quality is perfect (i.e.&nbsp;no correlation between covariates, large enough sample size). An easy next step is to look at a calibration curve between the predictions and the observed values.</p>
+<p>TODO: Explanation of calibration curves goes here</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(CalibrationCurves)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'CalibrationCurves' was built under R version 4.5.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: rms</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'rms' was built under R version 4.5.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: Hmisc</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'Hmisc' was built under R version 4.5.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'Hmisc'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:dplyr':
+
+    src, summarize</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    format.pval, units</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">val.prob.ci.2</span>(<span class="fu">predict</span>(fit_bias, <span class="at">type =</span> <span class="st">"response"</span>), fit_bias<span class="sc">$</span>y, <span class="at">main =</span> <span class="st">"Biased dosage sampling"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logisticRegressionExample_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+val.prob.ci.2(p = predict(fit_bias, type = "response"), y = fit_bias$y, 
+    main = "Biased dosage sampling")
+
+A 95% confidence interval is given for the calibration intercept, calibration slope and c-statistic. 
+
+          Dxy       C (ROC)            R2             D      D:Chi-sq 
+ 9.507589e-01  9.753794e-01  7.416192e-01  5.163104e-01  1.406397e+03 
+          D:p             U      U:Chi-sq           U:p             Q 
+ 0.000000e+00 -7.347539e-04  1.250555e-12  1.000000e+00  5.170452e-01 
+        Brier     Intercept         Slope          Emax  Brier scaled 
+ 4.194216e-02 -1.558615e-13  1.000000e+00  9.606205e-14  6.370954e-01 
+         Eavg           ECI 
+ 7.229090e-03  1.678244e-02 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">val.prob.ci.2</span>(<span class="fu">predict</span>(fit_bias2, <span class="at">type =</span> <span class="st">"response"</span>), fit_bias2<span class="sc">$</span>y, <span class="at">main =</span> <span class="st">"Biased perc_a sampling"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="logisticRegressionExample_files/figure-html/unnamed-chunk-13-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+val.prob.ci.2(p = predict(fit_bias2, type = "response"), y = fit_bias2$y, 
+    main = "Biased perc_a sampling")
+
+A 95% confidence interval is given for the calibration intercept, calibration slope and c-statistic. 
+
+          Dxy       C (ROC)            R2             D      D:Chi-sq 
+ 9.427371e-01  9.713685e-01  7.334839e-01  5.438112e-01  1.480710e+03 
+          D:p             U      U:Chi-sq           U:p             Q 
+ 0.000000e+00 -7.350239e-04  3.410605e-13  1.000000e+00  5.445463e-01 
+        Brier     Intercept         Slope          Emax  Brier scaled 
+ 4.729576e-02 -3.291509e-15  1.000000e+00  2.442491e-15  6.311706e-01 
+         Eavg           ECI 
+ 5.000460e-03  6.923471e-03 </code></pre>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -1,0 +1,495 @@
+---
+title: "Logistic Regression Analysis Example:" 
+subtitle: "Optimizing Expected Returns"
+author: "Josh Tomiyama"
+date: "2025-11-07"
+format: 
+  html:
+    toc: true
+engine: knitr
+execute:
+  results: hold
+---
+
+Last Update: `r Sys.Date()`
+
+```{r}
+#| warning: false
+#| message: false
+library(knitr)
+library(kableExtra)
+library(gtsummary)
+library(dplyr)
+library(ggplot2)
+```
+
+# Introduction
+
+This will be the one of the first in a series of example analyses I plan to post online to showcase my statistical technical knowledge as well as document some interesting problems I have come across in my experience. These example analyses are not so much tutorials as they are showcases on how to approach novel problems and apply statistical/machine learning methods and discussion of complications that can arise in analysis. As such, I will assume a some familiarity with the statistical tools and code presented here and generally keep theoretical discussion at a higher level.
+
+## Logistic Regression
+
+Logistic regression is one of the fundamental tools of machine learning and statistics and is actually one of the more powerful tools when one has enough time to go that extra mile and fine tune the model to the data. First I'll just state the mathematical formula for logistic regression beginning with the data model:
+
+$Y_i|\pi_i \sim Bernoulli(\pi_i)$
+
+where $i$ refers to the data sample index (think of a row in your data table), $Y_i$ is whether "success" is observed for sample $i$, and $\pi_i$ is the probability of success for the $i$-th subject. In typical applications, $Y_i$ is coded such that 0 means "failure" and 1 means "success". Now we can move on to the regression part of the model between the log-odds and the covariates of interest:
+
+$\log(\frac{\pi_i}{1-\pi_i}) = \pmb x_i \pmb \beta$
+
+where $\pmb x_i$ is a vector of covariates that you think explain the probability of success and $\pmb \beta$ is the vector of weights that indicate how strongly they contribute to the log-odds of success. When estimating the logistic regression model the $\pmb \beta$ coefficients are the main parameters of interest (as $\pi_i$ is derived from $\pmb \beta$). The reason we call it "logistic" regression is because $\log(\frac{x_i}{1-x_i})$ is the inverse of the logistic function.
+
+Overall, the take away is if you are statistically modeling the relationship between binary variable and other data you have collected, then logistic regression is generally a great model to use.
+
+## Why is Logistic Regression still valid in the face of new fancier models
+
+The important distinction between logistic regression and other machine learning models is that the statistical theory on the model parameters is well understood. For each of the $\beta$ parameters in our model, we know the statistical properties to allow inference through p-values or confidence intervals. Logistic regression is still a tool used today to understand the relationship between a binary outcome and other data collected when statistical evidence is required to validate any findings.
+
+Although in most real-world scenarios the other machine learning models perform better in terms of predictiveness, logistic regression can sometimes still be a better model in terms of predictiveness. In my experience in classes and work projects, a logistic regression model is actually superior to the more sophisticated machine learning techniques of Gradient Boosted Trees and Random Forests under a few scenarios with respect to the AUC (area under the curve) performance metric.
+
+The first scenario I've come across is when the sample size is relatively small. The machine learning techniques tend to work very well when there is more data to help effectively learn the functional relationship between the data you have and the target outcome. I would say this would be the situation when your sample size is in the magnitude of a few hundreds or less. After that point, other machine learning techniques perform at their expected capacity.
+
+The second scenario where logistic regression can prove better than tree based methods is if one is willing to both select the covariates that strongly relate to the outcome of interest and also identify how each covariate functionally relates to the outcome. To expand on what I mean by "how each covariate functionally relates to the outcome", some examples of functional relationships are the usual linear relationship, quadratic relationship, or sinusoidal relationship. In mathematical terms you can propose the following models:
+
+$Linear: \log(\frac{\pi_i}{1 - \pi_i}) = x_i\beta$
+
+$Quadratic: \log(\frac{\pi_i}{1 - \pi_i}) = x_i\beta_1 + x_i^2\beta_2$
+
+$Sinusoidal: \log(\frac{\pi_i}{1 - \pi_i}) = sin(x_i)\beta$
+
+Choosing a functional relationship alone produces infinite possibilities for one to sort through in addition to just choosing which covariates to include in one's analysis. The strength of tree based approaches is that they learn these relationships with enough data, but of course the tree won't be as accurate as if one were to explicitly identify that "true" relationship when training a logistic regression. However, identifying the "true" functional relationship between the outcome and covariates is rather impractical when one has many different covariates to consider at once. So once again, when the data becomes sufficiently large, it is more practical to use a Gradient Boosted Tree model or Random Forest model.
+
+The advantages and shortfalls of logistic regression compared to other machine learning techniques naturally extend to any generalized linear model such as linear regression. To be clear, I am **NOT** saying that in these scenarios generalized linear models will **ALWAYS** surpass the newer machine learning models and algorithms, but rather that these scenarios **ALLOW** generalized linear models to shine just as well if not better than their other machine learning counterparts in terms of predictiveness.
+
+# A Novel Application Problem
+
+Suppose that a drug company is developing a new formula for their drug. They are unsure what dosage of Drug A they should use in addition to the dosage of the standard Drug B. The way that the dosage of Drug A is recorded is a percentage relative to drug B (i.e. 100% Drug A means that the dosage of A should be equal to Drug B). In testing, different patients required different dosages of Drug B due to their age, weight, and height, and it is plausible that a person's race (white, black, asian) can also affect their recovery rate from the disease. The goal is to determine what percentage of Drug A that optimally balances the probability of recovering while also administering the highest dosage to the patient as possible. Defining the optimal percentage of Drug A is the novel part of the problem that I want to focus on.
+
+As a disclaimer: This problem is only for teaching purposes and is not at all indicative on how new drugs are actually developed, and I've created this problem to obfuscate the true real world problem for privacy reasons.
+
+From this set up, we can propose the following logistic regression model:
+
+$$
+\log(\frac{\pi_i}{1 - \pi_i}) = \beta_0 + x_{perc\_a} * \beta_{perc\_a} + 
+x_{dosage_b} * \beta_{dosage_b} + x_{race=black} * \beta_{race=black} + x_{race=asian}*\beta_{race=asian}
+$$
+
+where $x_{perc\_a}$ is a percentage above 0 (above 100 is allowed), $x_{dosage\_b}$ is the dosage of Drug B in milligrams, $x_{race=black}$ is 1 when patient $i$ is black and 0 otherwise, and similarly $x_{race=asian}$ is 1 when patient $i$ is asian and 0 otherwise. When patient $i$ is white then both $x_{race=black}$ and $x_{race=asian}$ are 0. $\pi_i$ is the probability that patient $i$ successfully recovers from the disease. The way that $x_{race}$ is encoded is known as the dummy variable encoding common in statistics (which is different from the one-hot encoding more prevalent in the machine learning field).
+
+## Example Analysis
+
+### Simulating toy data
+
+First, I will simulate data under the true proposed model. I chose the true parameters that I felt gave a good spread of the true probabilities while also being representative of the expected behavior in the example problem described to me.
+
+```{r}
+## True parameter values
+
+# set.seed(123123)
+
+sample_size <- 3000
+
+true_beta <- c(2, # intercept
+               -0.2, # perc_a
+               0.002, # dosage_b
+               1, # race=black
+               1.5 )# race=asian
+
+### Simulate data
+
+race <- sample(c("black", "white", "asian"), 
+               size = sample_size,
+               replace = TRUE,
+               prob = c(0.3, 0.5, 0.2))
+dosage <- rnorm(sample_size, mean = 2000, sd = 400)
+perc_a <- runif(sample_size, min = 20, max = 120)
+
+### make sure none of perc_a are below 0
+
+perc_a <- ifelse(perc_a <= 0, 10, perc_a)
+
+# convert race into a factor variable to prepare for analysis
+
+race <- factor(race, levels = c("white", "black", "asian"))
+
+x_df <- data.frame(perc_a = perc_a, dosage = dosage, race = race)
+
+# get x_matrix
+
+x_matrix <- model.matrix(~ 1 + perc_a + dosage + race, data = x_df)
+
+#simulated log-odds per person
+
+log_odds <- x_matrix %*% true_beta
+
+#convert log_odds to probabilities
+
+inverse_logit <- function(x){(1 + exp(-x))^-1}
+true_probs <- inverse_logit(log_odds)
+
+# get the outcome
+recovered <- rbinom(sample_size, 1, true_probs)
+x_df$recovered <- recovered
+x_df$true_probs <- c(true_probs)
+x_df$true_log_odds <- c(log_odds)
+```
+
+### Quick Exploratory analysis of the Data Set
+
+When starting an analysis, it's important to first summarize and get a feel of the data. In this case it's not as informative because the data generating mechanism is known, but we can still go through a brief summary of the data.
+
+```{r}
+x_df %>% 
+  select(perc_a, dosage, race, recovered) %>%
+  tbl_summary(by = "race")
+
+x_df %>% 
+  select(perc_a, dosage, recovered) %>%
+  tbl_summary(by = recovered)
+
+plot(perc_a, dosage, 
+     main = "Dosage vs perc_a", 
+     ylab = "Dosage (mg)", 
+     xlab = "Percentage Drug A (%)")
+
+
+```
+
+The first table summarizes the different covariates and outcomes by race. Inspecting the average and quartiles of perc_a and dosage between the different races we don't notice any difference in the distributions. This implies that race is associated with neither the dosage nor perc_a, which is a best case scenario for a logistic regression analysis. The percentage of people who recovered from the disease is fairly different between each of the races with the black and asian groups recovering at a higher rate than the white group. This implies that there may be an association between race and recovery from the disease. Clearly there is an imbalance in the distribution of race in the data set, but we have enough cases of each race such including race in the logistic regression model shouldn't be a problem.
+
+The second table summarizes perc_a and the dosage variables by whether the patient recovered (the 1 group) or not (the 0 group). Comparing these two groups, we can clearly see that perc_a is lower in the groups that recovered indicating a negative association between recovery and perc_a. The distribution of dosage shift about 100mg higher in the group that recovered and thus suggests a positive association between dosage and recovery.
+
+Finally, in the scatter plot comparing dosage and perc_a, we observe random spread of the points. There is no indication of a linear or other functional relationship between perc_a and dosage, which is an ideal scenario for logistic regression.
+
+### Fitting the logistic regression model
+
+Fitting a logistic regression model in R is a simple one line of code. Since we know what the true generating parameters are above, let's double check our work by comparing the fitted values to the true parameters.
+
+```{r}
+fit <- glm(recovered ~ 1 + perc_a + dosage + race, 
+           data = x_df,
+           family = binomial)
+ci <- confint(fit)
+result <- data.frame(truth = true_beta, 
+                     est = coef(fit),
+                     ci_lwr = ci[,1],
+                     ci_upr = ci[,2])
+
+kable(result, digits = 4) %>% 
+  kable_styling()
+```
+
+As expected with this rather large sample size, the estimates are fairly close to the true values and are well within the 95% confidence intervals.
+
+When building a logistic regression model, one usually has to consider a few different models to find the best fit to the data. Let's consider two other logistic regression models. One without race in the model but all other variables in the model:
+
+$$
+\log(\frac{\pi_i}{1 - \pi_i}) = \beta_0 + x_{perc\_a} * \beta_{perc\_a} + 
+x_{dosage_b} * \beta_{dosage_b}
+$$
+
+and another with a quadratic term for perc_a and including all the other variables:
+
+$$
+\log(\frac{\pi_i}{1 - \pi_i}) = \beta_0 + x_{perc\_a} * \beta_{perc\_a} + x_{perc\_a}^2 * \beta_{perc\_a^2} +
+x_{dosage_b} * \beta_{dosage_b} + x_{race=black} * \beta_{race=black} + x_{race=asian}*\beta_{race=asian}
+$$
+
+There are many model selection criteria to choose from and which one to use depends on the goal of the analysis. In this application, the goal is estimation and inference, so I would personally advocate for the Bayesian Information Criterion (BIC). The BIC is a quantity that expresses how well the proposed model fits the data while also balancing how many parameters are in a model. More parameters in a model results in a better fit to the data but too many parameters results in overfitting. Overfitting is bad due to lack of generalizability of the model to new data. Hence, the need for BIC to take into account the number of parameters in the model.
+
+Lower values of BIC indicate a better model for the data. A difference of at least 2 is generally the threshold to consider one model better than the other. Generally speaking, BIC favors having less parameters a model as compared to it's counterpart the Akaike Information Criterion (AIC). Therefore, the BIC is sometimes the preferred model selection criterion when the goal is to identify what covariates to go into a model.
+
+```{r}
+fit1 <- glm(recovered ~ 1 + perc_a + dosage, 
+           data = x_df,
+           family = binomial)
+fit2 <- glm(recovered ~ 1 + perc_a + I(perc_a^2) + dosage + race, 
+           data = x_df,
+           family = binomial)
+
+df_model_selection <- data.frame(model = c("True_model", "no_race", "quadratic_perc_a"), 
+                                 bic = c(BIC(fit), BIC(fit1), BIC(fit2))
+                                 ) 
+df_model_selection %>%    
+  kable(digits = 3, caption = "Smaller BIC indicates better model") %>%  
+  kable_styling()
+
+```
+
+Here we observe a few things when fitting the models. Clearly excluding race results in a worse model than the true model as the difference is around 50. Second, it is actually plausible that the quadratic perc_a term is equivalent to the true model as the difference in BIC is within 2. However, fitting the quadratic perc_a model resulted in some numerical instability so that is already one reason not to fully trues the quadratic model. Secondly, I usually advocate for the model with less parameters when two models are similar in terms of BIC. So of these three models in consideration, the true model is best as we expect.
+
+### Relationship between $x_{perc\_a}$  and $\pi_i$ 
+
+Now that we have decided on a logistic regression model, let's explore the relationship between perc_a and the probability of recovering. The relationship between perc_a and the log-odds might be linear, but when we invert the problem to get the relationship between perc_a and the probability it is certainly non-linear. To produce this non-linear relationship, we can invert the log-odds back to the probability scale through the following formula:
+
+$$
+\pi_i = (1 + \exp[-(\beta_0 + x_{perc\_a} * \beta_{perc\_a} + 
+x_{dosage} * \beta_{dosage} + x_{race=black} * \beta_{race=black} + x_{race=asian}*\beta_{race=asian})])^{-1}
+$$
+
+We are specifically interested in how perc_a relates to the probability of success, but we have the other data variables in the formula. Before exploring how the probability of success changes over a range of values for perc_a, it is pertinent to choose some representative values for dosage and race. To start with, let's set the dosage level to be the observed average dosage level and let race be the most common race in the data set to provide a curve.
+
+```{r}
+## there isn't a mode function in base R
+getMode <- function(x){
+  lx <- levels(x)
+  ux <- unique(lx)
+  factor(ux[which.max(tabulate(match(lx, ux)))], levels = lx)
+}
+range_perc_a <- seq(from = 0, to = 75, by = 1)
+mode_race <- rep(getMode(x_df$race), length(range_perc_a))
+mean_dosage <- rep(mean(x_df$dosage), length(range_perc_a))
+new_x_df <- data.frame("perc_a" = range_perc_a,
+                       "dosage" = mean_dosage,
+                       "race" = mode_race)
+
+preds <- predict(fit, newdata = new_x_df, se.fit = TRUE)
+preds_ci_upr <- preds$fit + qnorm(0.975)*preds$se.fit
+preds_ci_lwr <- preds$fit - qnorm(0.975)*preds$se.fit
+probs_df <- data.frame(pred_prob = inverse_logit(preds$fit),
+                       pred_prob_lwr = inverse_logit(preds_ci_lwr),
+                       pred_prob_upr = inverse_logit(preds_ci_upr),
+                       perc_a = range_perc_a)
+
+true_probs <- model.matrix(~ perc_a + dosage + race, data = new_x_df) %*% true_beta
+probs_df$true_probs <- inverse_logit(true_probs)
+
+
+ggplot(probs_df) + 
+  ## probability curve predicted from logistic regression in black
+  geom_line(aes(x = perc_a, y = pred_prob)) + 
+  ## 95% wald CI in red
+  geom_line(aes(x = perc_a, y = pred_prob_upr), col = "red") + 
+  geom_line(aes(x = perc_a, y = pred_prob_lwr), col = "red") + 
+  ## probability curve using true values will be in blue
+  geom_line(aes(x = perc_a, y = true_probs), col = "blue") + 
+  ggtitle(paste0("Probablity of recovering from disease vs perc_a"),
+          subtitle = paste0("Race = ", mode_race[1], 
+                            "  dosage = ", 
+                            round(mean_dosage[1], digits = 2)
+                            )
+  )
+
+```
+
+As expected, due to how well our estimates of the parameters are, the estimated probability curve in black is mostly overlapped by expected probabilities calculated from the true parameters in blue. As we can see from the graph above, the probability of recovery decreases as perc_a increases. This isn't surprising given that the true parameter for perc_a is -0.02. In the context of the given problem this would indicate evidence that administrating Drug A is actually harmful and ill-advised, but humor me as we try to find an optimal amount of perc_a.
+
+Let's plot the differences between the true and predicted probabilities to really show how small the difference in magnitude is. We can see that the probabilities only differ at most by 0.004. Depending on the application context this can be a meaningful distance or not, but for my general rule of thumb this is not a meaningful difference.
+
+```{r}
+plot(x = probs_df$perc_a, 
+     y = probs_df$true_probs - probs_df$pred_prob, 
+     type = 'h',
+     ylab = "True Prob - Pred Prob",
+     xlab = "perc_a",
+     main = "Difference between True and Predicted Probabilities")
+```
+
+### Calculating the Optimal perc_a
+
+We can propose the following function to express a balance between optimizing dosage administration while increasing the probability of successfully recovering the disease:\
+
+$f(x_{perc\_a}) = (1 + \frac{x_{perc\_a}}{100})*x_{dosage} \pi_i$
+
+This function is derived from the idea of the expected total dosage consumed by a new patient. The new patients total dosage is expressed as $(1 + \frac{x_{perc\_a}}{100})*x_{dosage}$ and the expected value of a new observation $Y_i$ is $\pi_i$ because $Y_i$ is a Bernoulli random variable. Thus, the expected total dosage that is administered to recovering patients is the multiplication of these two quantities.
+
+The calculation of $\pi_i$ depends on $x_{perc\_a}$ *and* $x_{dosage}$. This can be a typical calculus optimization problem to solve in this context, but instead we'll use numerical optimization to maximize this function to keep things code heavy rather than math heavy.
+
+```{r}
+expected_return <- function(perc_a, dosage, race, fit, log = TRUE){
+  new_data <- data.frame(perc_a = perc_a,
+                         dosage = dosage,
+                         race = race)
+  
+  if(log){
+   ### doing optimization on the log scale is more stable
+    log(1 + perc_a/100) + log(dosage) + 
+      log(inverse_logit(predict(fit, newdata = new_data, type = "link")))
+  }else{
+   (1 + perc_a/100)*dosage * #total dosage administered
+    inverse_logit(predict(fit, newdata = new_data, type = "link")) #prob success 
+  }
+}
+
+optimal_vals <- optim(par = 50, 
+      fn = expected_return, 
+      method = "BFGS",
+      control = list(fnscale = -1), # do maximization not minimization
+      # These params don't change
+      dosage = mean_dosage[1], race = mode_race[1], fit = fit 
+      )
+
+if(optimal_vals$convergence != 0){
+  stop("The numerical optimization did not converge")
+}else{
+  new_data <- data.frame(perc_a = optimal_vals$par,
+                         dosage = mean_dosage[1],
+                         race = mode_race[1])
+  optimal_prob_success <- inverse_logit(predict(fit, new_data))
+  optimal_df <- data.frame(optimal_perc_a = optimal_vals$par,
+                           expected_total_dosage = exp(optimal_vals$value),
+                           race = mode_race[1],
+                           dosage = mean_dosage[1],
+                           prob_success = optimal_prob_success)
+  kable(optimal_df, digits = 3, align = 'c') %>%
+    kable_styling()
+}
+```
+
+From this analysis, we find that for a white person who takes a dosage of 1992 mg of Drug B, the optimal dosage of Drug A is about 14.5 percent of the dosage of Drug B. This results in a total dosage of about 2173 mg of drugs.
+
+Although our formula calculates an optimal dosage of 14.5 percent of Drug A, we need to keep in mind that the range of perc_a in the data set are values between 20 and 120 percent. Thus, a dosage of 14.5 percent is outside the region of the data or that we are extrapolating outside the range of our observed data. I would suggest collecting more data in this range before widely adopting this decision rule.
+
+In this section we only looked at one specific combination of covariates. Of course, we may want to consider cases with different races and different dosage levels of Drug B. To explore these different scenarios more easily, I've created a Rshiny dashboard linked below (if it's done).
+
+# Discussion
+
+## Model Misspecification
+
+One may be tempted to fit a simpler logistic regression model that just includes perc_a and an intercept term because perc_a is the only relationship we are interested in exploring. If we choose to ignore the "true" relationship between the data variables and the outcome then we introduce significant bias in our estimates and predictions. Using the same data from earlier, let's inspect the relationship of the estimated probability of recovery and perc_a under this simpler model.
+
+```{r}
+fit_reduced <- glm(recovered ~ perc_a, data = x_df, family = binomial()) 
+# summary(fit_reduced)  
+new_x_df <- data.frame("perc_a" = range_perc_a,                        
+                       "dosage" = mean_dosage,                        
+                       "race" = mode_race)  
+
+preds <- predict(fit_reduced, newdata = new_x_df, se.fit = TRUE) 
+preds_ci_upr <- preds$fit + qnorm(0.975)*preds$se.fit 
+preds_ci_lwr <- preds$fit - qnorm(0.975)*preds$se.fit 
+probs_df <- data.frame(pred_prob = inverse_logit(preds$fit), 
+                       pred_prob_lwr = inverse_logit(preds_ci_lwr), 
+                       pred_prob_upr = inverse_logit(preds_ci_upr),  
+                       perc_a = range_perc_a)  
+true_probs <- model.matrix(~ perc_a + dosage + race, data = new_x_df) %*% true_beta 
+probs_df$true_probs <- inverse_logit(true_probs)  
+# mean(probs_df$pred_prob - probs_df$true_probs)   
+ggplot(probs_df) +    
+  geom_line(aes(x = perc_a, y = pred_prob)) +    
+  geom_line(aes(x = perc_a, y = pred_prob_upr), col = "red") +    
+  geom_line(aes(x = perc_a, y = pred_prob_lwr), col = "red") +    
+  geom_line(aes(x = perc_a, y = true_probs), col = "blue") +    
+  ggtitle(paste0("Probablity of recovering from disease vs perc_a"),
+          subtitle = paste0("Race = ", mode_race[1],  
+                            "  dosage = ", 
+                            round(mean_dosage[1], digits = 2)   
+                            )   
+          )
+```
+
+Very clearly, the true probability curve in blue is outside of the 95% confidence intervals for most of values of perc_a. The bias is mild at first but quickly diverges after around perc_a = 20. In this example curve, the estimated probability is higher than the true probability so any decisions made off the estimated probability will be over optimistic and thus lead to waste of perc_a doses.
+
+The inadequacy of the simple model is very apparent when we compare the BIC values of each model.
+
+```{r}
+df_model_selection <- data.frame(model = c("True_model", "Simple_model"), 
+                                 bic = c(BIC(fit), BIC(fit_reduced))
+                                 ) 
+df_model_selection %>%    
+  kable(digits = 3, caption = "Smaller BIC indicates better model") %>%  
+  kable_styling()
+```
+
+From our data, we observe the true model having a BIC of about 941 and the simple model having a BIC of about 1057. That is way more than the nominal threshold of 2. In fact, differences of 10 or more in the BIC indicate practically no evidence to favor the higher BIC model. So this section highlights the importance of considering different logistic regression models and comparing them using some model selection criterion.
+
+## Influential Data Points and Sample Size
+
+This question has come to me multiple times where sometimes the data is biased in some way where some subgroup of the data is underrepresented. Generally speaking, this will bias your estimates and thus statistical inference assumptions are violated (i.e. no independent, random sampling). But is it necessarily a problem? Well the answer is it *can* be, but it *depends* on the truth.
+
+To simulate this scenario, we will bias the data set from earlier in two (rather extreme) ways:
+
+1.  People with a dosage in the range of 2000-2100mg chose not to participate in the study.
+2.  People with perc_a in the range of 70-80% chose not to participate in the study
+
+```{r}
+
+x_df_bias <- filter(x_df, dosage < 2000 | dosage > 2100)
+
+fit_bias <- glm(recovered ~ 1 + perc_a + dosage + race, 
+                data = x_df_bias,
+                family = binomial)
+
+ci_bias <- confint(fit_bias)
+result <- data.frame(truth = true_beta, 
+                     full_est = coef(fit),
+                     bias_est = coef(fit_bias),
+                     bias_ci_lwr = ci_bias[,1],
+                     bias_ci_upr = ci_bias[,2])
+kable(result, digits = 4, caption = "Estimates when dosage is biased") %>% 
+  kable_styling()
+
+x_df_bias2 <- filter(x_df, perc_a < 70 | perc_a > 80)
+
+fit_bias2 <- glm(recovered ~ 1 + perc_a + dosage + race, 
+                data = x_df_bias2,
+                family = binomial)
+
+ci_bias <- confint(fit_bias2)
+result <- data.frame(truth = true_beta,
+                     full_est = coef(fit),
+                     bias_est = coef(fit_bias2),
+                     bias_ci_lwr = ci_bias[,1],
+                     bias_ci_upr = ci_bias[,2])
+kable(result, digits = 4, caption = "Estimates when perc_a is biased") %>%
+  kable_styling()
+```
+
+Notice how in each case, even though we excluded a specific portion of our target population the estimates shifted, but not by a lot. In fact, the inference is still rather okay under these conditions despite the bias. This is actually not completely unexpected and relates to the concept of influential data points when conducting a data analysis. There are multiple ways to measure influence in data with respect to a generalized linear model, the one most pertinent to this analysis is DFBETA(S).
+
+DFBETA(S) measures the change in a parameter estimate when a single data point is deleted from the model. The formula to calculate this measurement is expressed as:
+
+$$DFBETAS_j = \frac{\hat \beta_j - \hat \beta_{(i)j}}{SE(\hat \beta_j)}$$
+
+Where $j$ is the index for each beta parameter in the regression model, $\hat \beta_{(i)j}$ is the estimated beta parameter when the $i$th data point is deleted, and $SE(\hat \beta_j)$ is the standard error for the $\beta_j$ parameter.
+
+We can calculate this for each of the data points in our sample and a rule of thumb is that points with a DFBETA(S) greater than $\pm \frac{2}{\sqrt n}$ are highly influential where $n$ is the sample size of the data. The S in DFBETA(S) stands for standardized and is why the denominator is the standard error of $\hat \beta_j$. The parentheses in the name are just to emphasize the standardization part, I'll drop them from here on out.
+
+Let's inspect the DFBETAS for the full model to get an idea of how influential our data is.
+
+```{r}
+
+dfbetas_vals <- data.frame(dfbetas(fit)) 
+colnames(dfbetas_vals)[1] <- "intercept" 
+threshold <- sqrt(4/sample_size) 
+
+for(i in 1:ncol(dfbetas_vals)){ 
+  y <- dfbetas_vals[,i] 
+  plot(y, 
+       type = 'h', 
+       main = paste0("DFBETAS plot for ", colnames(dfbetas_vals)[i]),
+       ylim = c(min(c(y, -1*threshold)), max(c(y, threshold)))
+       ) 
+  abline(h = c(-1,1)*threshold, col = 'red') 
+  text(x = 0, 
+       max(y), 
+       adj = 0, 
+       paste0("Proportion of highly influential points = ", 
+              mean(abs(y) > threshold)) 
+       ) 
+}
+
+# idx <- abs(dfbetas_vals$perc_a) > threshold
+# summary(x_df[idx,])
+# summary(x_df)
+```
+
+Here we can see somewhere around 10% of the points are influential relative to the $\pm \frac{2}{\sqrt n}$ cut off for each of the beta parameters in the logistic regression. In a real world analysis we would inspect these points to determine if there is a pattern emerging from these influential points and appropriately exclude or try to adjust for any implied bias.
+
+Although not immediately obvious from the formula for DFBETAS, the sample size impacts how influential a single data point is on the estimation. Generally speaking, the larger the sample size the lower magnitude of the influence of a single data point on estimating parameters. Thus, for a large sample size like the one in this simulated data set, the influence is small and is the reason why deleting a small portion of the data set had minimal effect on the parameter estimates.
+
+The lesson here is that, for any biased data set, the influence may or may not strongly impact the parameters estimates depending on whether the biased data excluded any of these highly influential data points. Because we are in the context of a simulation problem, it's obvious to us how big this influence is because we know the truth. In real applications, we never know how big the influence is; all we know is that a bias in estimates will exist. For instance, if the data was biased in a way that a subset of the target population is excluded, then we will never know how those unobserved data points would impact the parameter estimates. This is where statistical analysis becomes a bit more of an art than a science.
+
+### What to do about bias in a data set
+
+For each of the bias scenarios, I would first investigate why did the sampling bias occur. Perhaps it was an expected phenomena such as the drugs are simply not created with those dosage levels. In this case, we simply redefine the target population of inference to exclude that unobserved sub–population.
+
+If the sampling bias was not expected in the data and it isn't feasible to collect data from missing sub-population, then what to do next really depends. First I would assess how well the model fits the data and the quality of the data. The data in this example is simulated, so the data quality is perfect (i.e. no correlation between covariates, large enough sample size). An easy next step is to look at a calibration curve between the predictions and the observed values.
+
+TODO: Explanation of calibration curves goes here
+
+```{r}
+library(CalibrationCurves)
+val.prob.ci.2(predict(fit_bias, type = "response"), fit_bias$y, main = "Biased dosage sampling")
+val.prob.ci.2(predict(fit_bias2, type = "response"), fit_bias2$y, main = "Biased perc_a sampling")
+```
