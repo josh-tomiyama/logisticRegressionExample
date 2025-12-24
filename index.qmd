@@ -3,9 +3,12 @@ title: "Logistic Regression Analysis Example:"
 subtitle: "Optimizing Expected Returns"
 author: "Josh Tomiyama"
 date: "2025-11-07"
-format: 
-  html:
-    toc: true
+categories:
+  - Statistics
+  - Logistic Regression
+  - Machine learning
+  - Optimization
+format: hugo-md
 engine: knitr
 execute:
   results: hold
@@ -284,7 +287,7 @@ The hardest assumption to verify is the linearity assumption. This only applies 
 $$
   residual_i = y_i - \hat \pi_i 
 $$
-where $\hat \pi_i$ is calculated from a proposed logistic regression model. We inspect the plot to make sure that the residuals are randomly scattered around the $y = 0$ horizontal line, there is no pattern in the residuals, and that at most 5% of the residuals are outside of the confidence interval lines.  
+where $\hat \pi_i$ is calculated from a proposed logistic regression model. We inspect the plot to make sure that the residuals are randomly scattered around the $y = 0$ horizontal line, there is no pattern in the residuals, and that at most ~5% of the residuals are outside of the confidence interval lines.  
 
 These binned residuals plots assume a large sample size for the statistical properties to hold. Specifically **if the sample size is large within each bin**, then the expected value of these residuals is 0 with known standard errors due to the Lindeberg-Feller central limit theorem. My personal rule-of-thumb is at least 30 observations to be reasonably confident in the approximation, but the more the better. Unfortunately, the binned plots from the arm package don't throw warnings when the bins have small sample size, so some caution is needed when interpretting these plots. In addition to large sample sizes, for values of $\hat \pi_i$ close to 0 or 1, the statistical theory does not hold, so bins with mostly very low or very high predicted values of $\hat \pi_i$ are not as informative.
 
