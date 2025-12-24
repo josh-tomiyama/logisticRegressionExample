@@ -535,7 +535,6 @@ To simulate this scenario, we will bias the data set from earlier in two (rather
 2.  People with markup in the range of 70-80% chose not to participate in the study
 
 ```{r}
-
 x_df_bias <- filter(x_df, cost < 2000 | cost > 2100)
 
 fit_bias <- glm(sold ~ 1 + markup + cost + type, 
@@ -560,7 +559,7 @@ fit_bias2 <- glm(sold ~ 1 + markup + cost + type,
 ci_bias <- confint(fit_bias2)
 
 
-sample_sizes <- data.frame(full = sample.size,
+sample_sizes <- data.frame(full = sample_size,
                            bias1 = nrow(x_df_bias),
                            bias2 = nrow(x_df_bias2))
 
