@@ -10,6 +10,7 @@ categories:
   - Optimization
 format: hugo-md
 engine: knitr
+type: "post"
 execute:
   results: hold
 ---
@@ -424,7 +425,7 @@ plot(x = probs_df$markup,
 
 ## Calculating the Optimal markup
 
-We can propose the following function to express a balance between optimizing cost markup while increasing the probability of successfully selling the product:\
+We can propose the following function to express a balance between optimizing cost markup while increasing the probability of successfully selling the product:
 
 $f(x_{markup}) = (1 + \frac{x_{markup}}{100})*x_{cost} \pi_i$
 
@@ -441,10 +442,10 @@ expected_return <- function(markup, cost, type, fit, log = TRUE){
   if(log){
    ### doing optimization on the log scale is more stable
     log(1 + markup/100) + log(cost) + 
-      log(inverse_logit(predict(fit, newdata = new_data, type = "link")))
+      log(predict(fit, newdata = new_data, type = "response"))
   }else{
-   (1 + markup/100)*cost * #total cost administered
-    inverse_logit(predict(fit, newdata = new_data, type = "link")) #prob success 
+   (1 + markup/100)*cost * #total sale price
+    predict(fit, newdata = new_data, type = "response") #prob success 
   }
 }
 
@@ -479,7 +480,67 @@ Although our formula calculates an optimal markup of `r round(optimal_df$optimal
 
 In this section we only looked at one specific combination of covariates. Of course, we may want to consider cases with combinations of product costs and product types. To explore these different scenarios more easily, I've created a Rshiny dashboard that'll be linked below when it's done.
 
+## Hypothetical Impact of Optimal Markup strategy
+
+Let's assess the business impact of this optimal markup strategy is in terms of two important outcomes:
+
+1. The change in successful sales compared to the observed sales data
+
+2. The change in revenue generated compared to the observed revenue
+
+For each point in our data set, we will substitute the observed optimal markup strategy with the optimal markup and check the change in sales and revenue. Any
+
+NOTE TO SELF: Hypothetical impact is evidently producing less revenue overall from simulation. Either simulation is flawed or the optimization is flawed.
+
+```{r}
+calc_optimal_markup <- function(cost, type, fit){
+  optim(par = 50, 
+      fn = expected_return, 
+      method = "BFGS",
+      control = list(fnscale = -1), # do maximization not minimization
+      # These params don't change
+      cost = cost, type = type, fit = fit 
+      )  
+}
+
+optimal_markups <- mapply(calc_optimal_markup, 
+                          cost = x_df$cost, 
+                          type = x_df$type, 
+                          MoreArgs = list(fit = fit))
+optimal_x_df <- x_df
+optimal_x_df$markup <- unlist(optimal_markups[1,])
+
+hist(optimal_x_df$markup)
+
+hypothetical_probs <- predict(fit, 
+                              newdata = optimal_x_df, 
+                              type = 'response')
+est_probs <- predict(fit, newdata = x_df, type = 'response')
+
+set.seed(2013)
+expected_results <- replicate(5000,
+          expr = {
+            hypothetical_success <- rbinom(sample_size, 1, hypothetical_probs)
+            c(change_sales = sum(hypothetical_success) - sum(x_df$sold),
+              change_rev = sum(hypothetical_success * (1 + optimal_x_df$markup/100)*x_df$cost) - 
+                           sum(x_df$sold * (1 + x_df$markup/100)*x_df$cost)
+            )
+          })
+obs_revenue <- sum(x_df$sold * (1 + x_df$markup/100)*x_df$cost)
+
+optimal_results <- data.frame(ave_change_sales = mean(expected_results[1,]),
+                              ave_change_revenue = mean(expected_results[2,]),
+                              ave_percent_change_sales = mean(expected_results[1,])/sum(x_df$sold),
+                              ave_percent_change_revenue = mean(expected_results[2,]) / obs_revenue)
+optimal_results
+```
+
+
 # Discussion
+
+
+
+
 
 # Practical Considerations During Analysis
 
@@ -618,6 +679,8 @@ Although not immediately obvious from the formula for DFBETAS, the sample size i
 The lesson here is that, for any "biased" data set, the influence may or may not strongly impact the parameters estimates depending on whether the biased data excluded any of these highly influential data points. Because we are in the context of a simulation problem, it's obvious to us how big this influence is because we know the truth. In real applications, we never know how big the influence is; all we know is that a bias in estimates will exist. For instance, if the data was biased in a way that a subset of the target population is excluded, then we will never know how those unobserved data points would impact the parameter estimates. This is where statistical analysis becomes a bit more of an art than a science.
 
 ```{r}
+#| eval: false
+
 simulate_fit_data <- function(i, bias_data = TRUE, ...){
   sample_size <- 3000
 
