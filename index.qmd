@@ -2,14 +2,17 @@
 title: "Logistic Regression Analysis Example: Optimizing Expected Returns"
 author: "Josh Tomiyama"
 date: "2025-11-07"
-format: hugo-md
+categories:
+  - "Machine Learning"
+  - "Logistic Regression"
+  - "Optimization"
 engine: knitr
-type: "post"
-showTableOfContents: true
 freeze: auto
+toc: true
+toc-depth: 2
+toc-location: left
 execute:
   results: hold
-tags: ["Machine Learning", "Logistic Regression", "Optimization"]
 ---
 
 Last Update: `r format(Sys.Date(),"%B %d, %Y")`
@@ -31,13 +34,13 @@ This will be the one of the first in a series of example analyses I plan to post
 
 The article is organized into the following parts:
 
-1. A basic introduction of the logistic regression model and its comparison to other machine learning models
+1.  A basic introduction of the logistic regression model and its comparison to other machine learning models
 
-2. A simulated example detailing the workflow to build a logistic regression model
+2.  A simulated example detailing the workflow to build a logistic regression model
 
-3. Methods to leverage the logistic regression model to optimize some target goal
+3.  Methods to leverage the logistic regression model to optimize some target goal
 
-4. Discussion of how to approach practical problems when the data is less than ideal
+4.  Discussion of how to approach practical problems when the data is less than ideal
 
 # Logistic Regression
 
@@ -53,18 +56,17 @@ where $\pmb x_i$ is a vector of covariates that you think explain the probabilit
 
 The assumptions of the model are as follows:
 
-  1. The outcome is a binary random variable, specifically a Bernoulli[^1] random variable.
-  
-  2. The independent/explanatory variables (I'll commonly refer to these as covariates) have a linear relationship with the log-odds of "success". The linearity here refers to the beta parameters, for example one may include an $x^2\beta$ term in the model as the beta parameter has a power of 1.
-  
-  3. Observations are independent of each other
-  
-  4. No multicollinearity between covariates. For any single covariate, the other covariates in the model don't perfectly describe that covariate.
-  
-  5. No complete separation. In other words, the covariates cannot perfectly predict binary outcome.
-  
+1.  The outcome is a binary random variable, specifically a Bernoulli[^1] random variable.
 
-[^1]: There is an extension of logistic regression to group level data where the outcome is the number of successes observed and is modeled as a binomial random variable. 
+2.  The independent/explanatory variables (I'll commonly refer to these as covariates) have a linear relationship with the log-odds of "success". The linearity here refers to the beta parameters, for example one may include an $x^2\beta$ term in the model as the beta parameter has a power of 1.
+
+3.  Observations are independent of each other
+
+4.  No multicollinearity between covariates. For any single covariate, the other covariates in the model don't perfectly describe that covariate.
+
+5.  No complete separation. In other words, the covariates cannot perfectly predict binary outcome.
+
+[^1]: There is an extension of logistic regression to group level data where the outcome is the number of successes observed and is modeled as a binomial random variable.
 
 ## Logistic regression compared to other machine learning models
 
@@ -161,7 +163,6 @@ x_df$sold <- sold
 # x_df$true_log_odds <- c(log_odds)
 ```
 
-
 Here are the first few rows of the data set to get an idea of how the data is organized:
 
 ```{r}
@@ -169,7 +170,6 @@ head(x_df, 5) %>%
   kable() %>%
   kable_styling()
 ```
-
 
 # Example Logistic Regression Analysis
 
@@ -212,7 +212,6 @@ plot(markup, cost,
      ylab = "cost of production ($)", 
      xlab = "markup of product (%)")
 ```
-
 
 The first table summarizes the different covariates and outcome by type. Inspecting the average and quartiles of markup and cost between the different types, we don't notice any difference in the distributions. This implies that type is associated with neither the cost nor markup, which is a best case scenario for a logistic regression analysis. The proportion of successful sales is different among the product types with clothes and shoe products selling at a higher rate than the accessories. This implies that there may be an association between type and product sales. Clearly, there is an imbalance in the distribution of type in the data set, but we have enough cases of each product type such that including type in the logistic regression model shouldn't be a problem.
 
@@ -262,7 +261,7 @@ $$
 \log(\frac{\pi_i}{1 - \pi_i}) = \beta_0 + x_{markup} * \beta_{markup}
 $$
 
-There are many model selection criteria to choose from and which one to use depends on the goal of the analysis. In this application, the goal is estimation and inference, so I would personally advocate for the Bayesian Information Criterion (BIC). The BIC is a quantity that expresses how well the proposed model fits the data while also balancing how many parameters are in a model. More parameters in a model results in a better fit to the data but too many parameters results in overfitting. The problem with an overfit model is the lack of generalizability  to new data. Please refer to the BIC() documentation to see the formula for its calculation. BIC favors having less parameters in a model as compared to it's counterpart the Akaike Information Criterion (AIC). Therefore, the BIC is sometimes the preferred model selection criterion when the goal is to identify what covariates to go into a model.
+There are many model selection criteria to choose from and which one to use depends on the goal of the analysis. In this application, the goal is estimation and inference, so I would personally advocate for the Bayesian Information Criterion (BIC). The BIC is a quantity that expresses how well the proposed model fits the data while also balancing how many parameters are in a model. More parameters in a model results in a better fit to the data but too many parameters results in overfitting. The problem with an overfit model is the lack of generalizability to new data. Please refer to the BIC() documentation to see the formula for its calculation. BIC favors having less parameters in a model as compared to it's counterpart the Akaike Information Criterion (AIC). Therefore, the BIC is sometimes the preferred model selection criterion when the goal is to identify what covariates to go into a model.
 
 Lower values of BIC indicate a better statistical model for the data. A difference of at least 2 is the typical threshold to consider one model superior the other. For differences of less than 2 the models are about equivalent and the statistician must decide which model is superior.
 
@@ -288,27 +287,25 @@ df_model_selection %>%
 
 Upon inspecting the BIC values, the true model is unsurprisingly the lowest BIC and thus the best model. Disregarding our knowledge of the true data generating model, the model chosen at this step strongly translates the trends observed in the exploratory data analysis step, and thus highlights the importance of exploring the data before building models. The simple model with just markup is clearly the worst model with the highest BIC, so although the simple model would drastically simplify our optimal estimation of $\pi_i$ in the next step, the data indicates a more complex relationship between the outcome and covariates is more appropriate.
 
-Although we only inspect 4 models here, usually one would explore many more models and spend the bulk of their time trying to figure out the best model. More complex relationships like interactions and different functional transformations of continuous variables could be considered. Based on the exploratory analysis, this does not seem necessary in this analysis. 
+Although we only inspect 4 models here, usually one would explore many more models and spend the bulk of their time trying to figure out the best model. More complex relationships like interactions and different functional transformations of continuous variables could be considered. Based on the exploratory analysis, this does not seem necessary in this analysis.
 
 ## Assessing Model Assumptions
 
-Assessing whether the model assumptions are violated is often overlooked when fitting a logistic regression model. The main ones to assess are linearity of covariates (assumption 2), independent sampling (assumption 3), and multicollinearity (assumption 4). Perfect separation (assumption 5) is normally a warning from R if that occurs. 
+Assessing whether the model assumptions are violated is often overlooked when fitting a logistic regression model. The main ones to assess are linearity of covariates (assumption 2), independent sampling (assumption 3), and multicollinearity (assumption 4). Perfect separation (assumption 5) is normally a warning from R if that occurs.
 
-Based on the exploratory analysis earlier, multicollinearity is not likely not an issue in this data set. We know this for a fact because I generated the data independently. The exploratory analysis revealed that there wasn't any clear relationship between pairs of the covariates, and all of the parameters in the model are statistically significant. These are both great signs that multicollinearity is not present. However, to formally check for multicollinearity, one can check the Variance Inflation Factors (VIFs) in the covariates. I'll skip this step for now but one can read more on VIF theory here: https://online.stat.psu.edu/stat462/node/180/ and how to calculate it using the `car` package in R here: https://www.r-bloggers.com/2023/12/exploring-variance-inflation-factor-vif-in-r-a-practical-guide/. 
+Based on the exploratory analysis earlier, multicollinearity is not likely not an issue in this data set. We know this for a fact because I generated the data independently. The exploratory analysis revealed that there wasn't any clear relationship between pairs of the covariates, and all of the parameters in the model are statistically significant. These are both great signs that multicollinearity is not present. However, to formally check for multicollinearity, one can check the Variance Inflation Factors (VIFs) in the covariates. I'll skip this step for now but one can read more on VIF theory here: https://online.stat.psu.edu/stat462/node/180/ and how to calculate it using the `car` package in R here: https://www.r-bloggers.com/2023/12/exploring-variance-inflation-factor-vif-in-r-a-practical-guide/.
 
-I will note though that if one adds higher order terms in the regression, for example 
+I will note though that if one adds higher order terms in the regression, for example
 
 $$
 \log(\frac{\pi_i}{1 - \pi_i}) = \beta_0 + x_{markup} * \beta_{markup} + x_{markup}^2 * \beta_{markup^2}
-$$
-then instead of the VIF one will need to inspect the Generalized Variance Inflation Factor (GVIF).
+$$ then instead of the VIF one will need to inspect the Generalized Variance Inflation Factor (GVIF).
 
 The hardest assumption to verify is the linearity assumption. This only applies to continuous covariates which are markup and cost in this example. We can use the `binnedplot` function in the `arm` package to assess this. What this function does is bin or discretize the continuous variable into equally spaced segments. Within each segment, calculate the residual for the observations via:
 
 $$
   residual_i = y_i - \hat \pi_i 
-$$
-where $\hat \pi_i$ is calculated from a proposed logistic regression model. We inspect the plot to make sure that the residuals are randomly scattered around the $y = 0$ horizontal line, there is no pattern in the residuals, and that at most ~5% of the residuals are outside of the confidence interval lines.  
+$$ where $\hat \pi_i$ is calculated from a proposed logistic regression model. We inspect the plot to make sure that the residuals are randomly scattered around the $y = 0$ horizontal line, there is no pattern in the residuals, and that at most \~5% of the residuals are outside of the confidence interval lines.
 
 These binned residuals plots assume a large sample size for the statistical properties to hold. Specifically **if the sample size is large within each bin**, then the expected value of these residuals is 0 with known standard errors due to the Lindeberg-Feller central limit theorem. My personal rule-of-thumb is at least 30 observations to be reasonably confident in the approximation, but the more the better. Unfortunately, the binned plots from the arm package don't throw warnings when the bins have small sample size, so some caution is needed when interpretting these plots. In addition to large sample sizes, for values of $\hat \pi_i$ close to 0 or 1, the statistical theory does not hold, so bins with mostly very low or very high predicted values of $\hat \pi_i$ are not as informative.
 
@@ -342,7 +339,6 @@ legend("topright",
        pch = 16)
 ```
 
-
 Let's look at several binned residual plots to assess whether our proposed model is reasonable.
 
 ```{r}
@@ -369,11 +365,9 @@ binnedplot(x = x_df$cost,
            main="Binned residual plot of cost")
 ```
 
-
-
 # Optimizing the Expected Returns (Expected Revenue)
 
-## Relationship between $x_{markup}$  and $\pi_i$ 
+## Relationship between $x_{markup}$ and $\pi_i$
 
 Now that we have decided on a logistic regression model, let's explore the relationship between markup and the probability of selling the product. The relationship between markup and the log-odds might be linear, but when we invert the problem to get the relationship between markup and the probability it is certainly non-linear. To produce this non-linear relationship, we can invert the log-odds back to the probability scale through the following formula:
 
@@ -497,7 +491,7 @@ if(optimal_vals$convergence != 0){
 }
 ```
 
-From this analysis, we find that for an accessory product that costs of \$`r round(optimal_df$cost, digits = 2)`to produce, the optimal markup is about `r round(optimal_df$optimal_markup, digits = 2)` percent. This results in a total revenue generated of \$`r round(optimal_df$expected_total_cost, digits = 2)`.
+From this analysis, we find that for an accessory product that costs of \$`r round(optimal_df$cost, digits = 2)` to produce, the optimal markup is about `r round(optimal_df$optimal_markup, digits = 2)` percent. This results in a total revenue generated of \$`r round(optimal_df$expected_total_cost, digits = 2)`.
 
 Although our formula calculates an optimal markup of `r round(optimal_df$optimal_markup, digits = 2)` percent, we need to keep in mind that the range of markup in the data set are values between 20 and 120 percent. Thus, a markup of `r round(optimal_df$optimal_markup, digits = 2)` percent is outside the region covered by the data. I would suggest collecting more data in this range before widely adopting this decision rule.
 
@@ -507,9 +501,9 @@ In this section we only looked at one specific combination of covariates. Of cou
 
 Let's assess the business impact of this optimal markup strategy is in terms of two important outcomes:
 
-1. The change in successful sales compared to the observed sales data
+1.  The change in successful sales compared to the observed sales data
 
-2. The change in revenue generated compared to the observed revenue
+2.  The change in revenue generated compared to the observed revenue
 
 For each point in our data set, we will substitute the observed optimal markup strategy with the optimal markup and check the change in sales and revenue.
 
@@ -556,243 +550,10 @@ optimal_results <- data.frame(ave_change_sales = mean(expected_results[1,]),
 optimal_results
 ```
 
-
 # Discussion
-
 
 Easy to extend to
 
-# Practical Considerations During Analysis
-
-## Model Misspecification
-
-One may be tempted to fit a simpler logistic regression model that just includes markup and an intercept term because markup is the only relationship we are interested in exploring. In the optimization step outline earlier, this model simplifies the calculations significantly as we do not need to set fixed values for type and cost. However, if we choose to ignore the "true" relationship between the data variables and the outcome then we introduce significant bias in our estimates and predictions. Using the same data from earlier, let's inspect the relationship of the estimated probability of recovery and markup under this simpler model:
-
-$$
-  \log(\frac{\pi_i}{1 - \pi_i}) = \beta_0 + x_{markup}*\beta_{markup}
-$$
-
-```{r}
-fit_reduced <- glm(sold ~ markup, data = x_df, family = binomial()) 
-# summary(fit_reduced)  
-new_x_df <- data.frame("markup" = range_markup,                        
-                       "cost" = mean_cost,                        
-                       "type" = mode_type)  
-
-preds <- predict(fit_reduced, newdata = new_x_df, se.fit = TRUE) 
-preds_ci_upr <- preds$fit + qnorm(0.975)*preds$se.fit 
-preds_ci_lwr <- preds$fit - qnorm(0.975)*preds$se.fit 
-probs_df <- data.frame(pred_prob = inverse_logit(preds$fit), 
-                       pred_prob_lwr = inverse_logit(preds_ci_lwr), 
-                       pred_prob_upr = inverse_logit(preds_ci_upr),  
-                       markup = range_markup)  
-true_probs <- model.matrix(~ markup + cost + type, data = new_x_df) %*% true_beta 
-probs_df$true_probs <- inverse_logit(true_probs)  
-# mean(probs_df$pred_prob - probs_df$true_probs)   
-ggplot(probs_df) +    
-  geom_line(aes(x = markup, y = pred_prob)) +    
-  geom_line(aes(x = markup, y = pred_prob_upr), col = "red") +    
-  geom_line(aes(x = markup, y = pred_prob_lwr), col = "red") +    
-  geom_line(aes(x = markup, y = true_probs), col = "blue") +    
-  ggtitle(paste0("Probablity of sale vs markup"),
-          subtitle = paste0("type = ", mode_type[1],  
-                            "  cost = ", 
-                            round(mean_cost[1], digits = 2)   
-                            )   
-          )
-```
-
-Very clearly, the true probability curve in blue is outside of the 95% confidence intervals for most of values of markup. The bias is mild at first but quickly diverges after around markup = 20. In this example curve, the estimated probability is higher than the true probability so any decisions made off the estimated probability will be over optimistic and thus lead to waste of markup doses. This clearly highlights the importance of an exploratory analysis in addition to model selection steps to avoid bias in the logistic regression model.
-
-## Influential Data Points and Sample Size
-
-This question has come to me multiple times where sometimes the data is "biased" in some way where some subgroup of the data is underrepresented. The specific case we'll focus on is when some interval of values for a continuous covariate are not observed. For example, suppose that in the data we didn't observe any points that costed between 2000 and 2100. Is this necessarily a problem? Well, it depends on whether these unobserved values follow the same pattern as the rest of the observed data.
-
-First, one needs to consider what the application of the study is. If the analysis is for a scientific experiment and the goal is inference, then generally no this violation reveals some error in the experimental setup and thus the inference is hard to justify. If we are not in such a strict scenario, such as the scenario presented in the problem, well then the bias *can* be a problem, but it *depends* on the truth, the quality of the data, and the sample size. 
-
-To simulate this scenario, we will bias the data set from earlier in two (rather extreme) ways:
-
-1.  People with a cost in the range of 2000-2100mg chose not to participate in the study.
-2.  People with markup in the range of 70-80% chose not to participate in the study
-
-```{r}
-x_df_bias <- filter(x_df, cost < 2000 | cost > 2100)
-
-fit_bias <- glm(sold ~ 1 + markup + cost + type, 
-                data = x_df_bias,
-                family = binomial)
-
-ci_bias <- confint(fit_bias)
-result <- data.frame(truth = true_beta, 
-                     full_est = coef(fit),
-                     bias_est = coef(fit_bias),
-                     bias_ci_lwr = ci_bias[,1],
-                     bias_ci_upr = ci_bias[,2])
-kable(result, digits = 4, caption = "Estimates when cost is biased") %>% 
-  kable_styling()
-
-x_df_bias2 <- filter(x_df, markup < 70 | markup > 80)
-
-fit_bias2 <- glm(sold ~ 1 + markup + cost + type, 
-                data = x_df_bias2,
-                family = binomial)
-
-ci_bias <- confint(fit_bias2)
-
-
-sample_sizes <- data.frame(full = sample_size,
-                           bias1 = nrow(x_df_bias),
-                           bias2 = nrow(x_df_bias2))
-
-result <- data.frame(truth = true_beta,
-                     full_est = coef(fit),
-                     bias_est = coef(fit_bias2),
-                     bias_ci_lwr = ci_bias[,1],
-                     bias_ci_upr = ci_bias[,2])
-kable(result, digits = 4, caption = "Estimates when markup is biased") %>%
-  kable_styling()
-```
-
-Even though we excluded a specific portion of our target population the estimates shifted but not by a lot. In fact, the inference is still rather okay under these conditions despite the bias (see appendix: simulation study of bias in estimates due to interval of missing values). This is actually not completely unexpected and relates to the concept of influential data points when conducting a data analysis. There are multiple ways to measure influence in data with respect to a generalized linear model, the one most pertinent to this concept is DFBETA(S). 
-
-DFBETA(S) measures the change in a parameter estimate when a single data point is deleted from the model. The formula to calculate this measurement is expressed as:
-
-$$DFBETAS_j = \frac{\hat \beta_j - \hat \beta_{(i)j}}{SE(\hat \beta_j)}$$
-
-Where $j$ is the index for each beta parameter in the regression model, $\hat \beta_{(i)j}$ is the estimated beta parameter when the $i$th data point is deleted, and $SE(\hat \beta_j)$ is the standard error for the $\beta_j$ parameter.
-
-We can calculate this for each of the data points in our sample and a rule of thumb is that points with a DFBETA(S) greater than $\pm \frac{2}{\sqrt n}$ are highly influential where $n$ is the sample size of the data. The S in DFBETA(S) stands for standardized and is why the denominator is the standard error of $\hat \beta_j$. The parentheses in the name are just to emphasize the standardization part, I'll drop them from here on out.
-
-Let's inspect the DFBETAS for the full model to get an idea of how influential our data is.
-
-```{r}
-
-dfbetas_vals <- data.frame(dfbetas(fit)) 
-colnames(dfbetas_vals)[1] <- "intercept" 
-threshold <- sqrt(4/sample_size) 
-
-for(i in 1:ncol(dfbetas_vals)){ 
-  y <- dfbetas_vals[,i] 
-  plot(y, 
-       type = 'h', 
-       main = paste0("DFBETAS plot for ", colnames(dfbetas_vals)[i]),
-       ylim = c(min(c(y, -1*threshold)), max(c(y, threshold)))
-       ) 
-  abline(h = c(-1,1)*threshold, col = 'red') 
-  text(x = 0, 
-       max(y), 
-       adj = 0, 
-       paste0("Proportion of highly influential points = ", 
-              mean(abs(y) > threshold)) 
-       ) 
-}
-
-# idx <- abs(dfbetas_vals$markup) > threshold
-# summary(x_df[idx,])
-# summary(x_df)
-```
-
-Here we can see somewhere around 10% of the points are influential relative to the $\pm \frac{2}{\sqrt n}$ cut off for each of the beta parameters in the logistic regression. In a real world analysis we would inspect these points to determine if there is a pattern emerging from these influential points and appropriately exclude or try to adjust for any implied bias.
-
-Although not immediately obvious from the formula for DFBETAS, the sample size impacts how influential a single data point is on the estimation. Generally speaking, the larger the sample size then the lower magnitude of the influence of a single data point on estimating parameters. Thus, for a large sample size like the one in this simulated data set, the influence is small and is the reason why deleting a small portion of the data set had minimal effect on the parameter estimates.
-
-The lesson here is that, for any "biased" data set, the influence may or may not strongly impact the parameters estimates depending on whether the biased data excluded any of these highly influential data points. Because we are in the context of a simulation problem, it's obvious to us how big this influence is because we know the truth. In real applications, we never know how big the influence is; all we know is that a bias in estimates will exist. For instance, if the data was biased in a way that a subset of the target population is excluded, then we will never know how those unobserved data points would impact the parameter estimates. This is where statistical analysis becomes a bit more of an art than a science.
-
-```{r}
-#| eval: false
-
-simulate_fit_data <- function(i, bias_data = TRUE, ...){
-  sample_size <- 3000
-
-  true_beta <- c(2, # intercept
-                 -0.2, # markup
-                 0.002, # cost
-                 1, # type=clothes
-                 1.5 )# type=shoes
-  
-  ### Simulate data
-  
-  type <- sample(c("accessories", "clothes", "shoes"), 
-                 size = sample_size,
-                 replace = TRUE,
-                 prob = c(0.3, 0.5, 0.2))
-  cost <- rnorm(sample_size, mean = 2000, sd = 400)
-  markup <- runif(sample_size, min = 20, max = 120)
-  
-  ### make markup and cost are above 0
-  
-  markup <- ifelse(markup <= 0, 10, markup)
-  cost <- ifelse(cost <= 0, 2000, cost)
-  
-  # convert type into a factor variable to prepare for analysis
-  
-  type <- factor(type, levels = c("accessories", "clothes", "shoes"))
-  
-  x_df <- data.frame(markup = markup, cost = cost, type = type)
-  
-  # get x_matrix
-  
-  x_matrix <- model.matrix(~ 1 + markup + cost + type, data = x_df)
-  
-  #simulated log-odds per person
-  
-  log_odds <- x_matrix %*% true_beta
-  
-  #convert log_odds to probabilities
-  
-  inverse_logit <- function(x){(1 + exp(-x))^-1}
-  true_probs <- inverse_logit(log_odds)
-  
-  # get the outcome
-  sold <- rbinom(sample_size, 1, true_probs)
-  x_df$sold <- sold
-  x_df
-  if(bias_data){
-    x_df_bias <- x_df_bias <- filter(x_df, cost < 2000 | cost > 2100)
-  }else{
-    x_df_bias <- x_df
-  }
-  
-  fit <- glm(sold ~ 1 + markup + cost + type, 
-           data = x_df_bias,
-           family = binomial)
-  bias <- coef(fit) - true_beta
-  ci <- confint(fit)
-  ## check whether true parameters are within the confidence interval
-  cover <- (ci[,1] < true_beta) & (true_beta < ci[,2])
-  out <- c(bias, cover)
-  names(out) <- c(names(bias), paste0("cover", names(bias)))
-  out
-}
-set.seed(123123)
-library(parallel)
-cl <- makeCluster(detectCores() - 1)
-clusterEvalQ(cl, suppressPackageStartupMessages(library(dplyr)))
-clusterSetRNGStream(cl)
-nreps <- 10000
-rep_results_biased <- parSapply(cl, 1:nreps, simulate_fit_data, bias_data = TRUE)
-rep_results <- parSapply(cl, 1:nreps, simulate_fit_data, bias_data = FALSE)
-stopCluster(cl)
-rowMeans(rep_results)
-rowMeans(rep_results_biased)
-```
-
-
-### What to do about percieved bias in a data set
-
-For each of the bias scenarios, I would first investigate why the sampling bias occurred. Perhaps it was an expected phenomena such as one does not sell products at those cost levels. In this case, we simply redefine the target population of inference to exclude that unobserved sub–population.
-
-If the sampling bias was not expected in the data and it isn't feasible to collect data from missing sub-population, then what to do next really depends. First I would assess how well the model fits the data and the quality of the data. The data in this example is simulated, so the data quality is perfect (i.e. no correlation between covariates, large enough sample size). An easy next step is to look at some measures of internal model validity like a calibration curve between the predictions and the observed values and cross validation.
-
-TODO: Explanation of calibration curves goes here
-
-```{r}
-#| warning: false
-#| message: false
-library(CalibrationCurves)
-val.prob.ci.2(predict(fit_bias, type = "response"), fit_bias$y, main = "Biased cost sampling")
-val.prob.ci.2(predict(fit_bias2, type = "response"), fit_bias2$y, main = "Biased markup sampling")
-```
 
 # Appendix: Deriving expected revenue formula
 
@@ -802,7 +563,7 @@ Next let's derive a simple random variable $Z_i$ to represent the revenue genera
 
 $$Z_i = (1 + \frac{x_{markup}}{100})x_{cost} Y_i$$
 
-A straightforward application of deriving shows that 
+A straightforward application of deriving shows that
 
 $$\mathbb E(Z_i) = (1 + \frac{x_{markup}}{100})x_{cost} \mathbb E(Y_i) =  (1 + \frac{x_{markup}}{100})x_{cost} \pi_i$$
 
@@ -812,12 +573,8 @@ $\widehat{\mathbb E(Z_i)} = (1 + \frac{x_{markup}}{100})x_{cost} \hat \pi_i$.
 
 For the more statistically rigorous, the expectations here are conditional on the covariates in the logistic regression model and $\widehat{\mathbb E(Z_i)}$ is a maximum-likelihood estimator of $\mathbb E(Z_i)$.
 
-
-
-
 # Session Info and Bibliography
 
 ```{r}
 sessionInfo()
 ```
-
